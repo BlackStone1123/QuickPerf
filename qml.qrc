@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Qml/main.qml</file>
+        <file>Qml/PerfListView.qml</file>
+        <file>Qml/PerfGraphView.qml</file>
+    </qresource>
+</RCC>
