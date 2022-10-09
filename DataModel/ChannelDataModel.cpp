@@ -83,6 +83,15 @@ ChannelDataRow ChannelDataModel::generateRandomDataRow(size_t index)
     return row;
 }
 
+void ChannelDataModel::fetchMoreData()
+{
+    for (auto _one : mRows)
+    {
+        _one.barSetModel->appendDatas(mGenerator.generate(mBatchSize));
+    }
+    mRange += mBatchSize;
+}
+
 //////////////////////////////////////////////////////////////////////////
 BarSetModel::BarSetModel(QObject* parent)
     : QAbstractListModel(parent)

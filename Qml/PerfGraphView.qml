@@ -6,7 +6,7 @@ import com.biren.dataModel 1.0
 Item{
     id: root
 
-    property int maxDataNumber: 100.0
+    property int maxDataNumber: controller.displayingDataCount
     property int currentChannelIndex: graphListView.currentIndex
 
     PerfGraphViewController{
@@ -150,9 +150,8 @@ Item{
                     scrollView.flickableItem.contentHeight
                     )
 
-                var scaledNumber = maxDataNumber * (wheel.angleDelta.y > 0 ? 0.5 : 1.5)
-                maxDataNumber = scaledNumber > 10 ? scaledNumber: 10
                 //scrollView.flickableItem.contentX += (wheel.angleDelta.y > 0 ? 50 : -50)
+                controller.onWheelScaled(wheel.angleDelta)
                 wheel.accepted = true
             }
             else
@@ -160,7 +159,6 @@ Item{
         }
 
         onPressed: {
-            controller.insertRowBefore(currentChannelIndex)
             mouse.accepted = false
         }
     }

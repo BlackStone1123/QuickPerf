@@ -14,6 +14,10 @@ public:
 signals:
     void modelChanged();
     void insertRowBefore(int index);
+    void displayingDataCountChanged();
+
+public slots:
+    void onWheelScaled(const QPointF&);
 
 private:
     QPointer<ChannelDataModel> mDataModel;

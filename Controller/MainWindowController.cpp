@@ -4,7 +4,6 @@
 #include <QCoreApplication>
 #include <QQmlEngine>
 
-#include "PerfListViewController.h"
 #include "PerfGraphViewController.h"
 #include "../DataModel/ChannelDataModel.h"
 
@@ -42,7 +41,6 @@ QPointer<QQuickView> MainWindowController::createQuickView(const QUrl& url, size
 
 void MainWindowController::registerMetaTypes()
 {
-    qmlRegisterType<PerfListViewController>("com.biren.dataModel", 1, 0, "PerfListViewController");
     qmlRegisterType<PerfGraphViewController>("com.biren.dataModel", 1, 0, "PerfGraphViewController");
     qmlRegisterUncreatableType<ChannelDataModel>("com.biren.dataModel", 1, 0, "ChannelDataModel", "Should not be created from qml file");
 }
