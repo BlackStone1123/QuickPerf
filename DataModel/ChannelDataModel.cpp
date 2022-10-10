@@ -1,10 +1,11 @@
 #include "ChannelDataModel.h"
 #include <iostream>
+#include <thread>
 
 ChannelDataModel::ChannelDataModel(QObject* parent)
     : QAbstractListModel(parent)
 {
-    for (size_t i = 0; i < 10; i++)
+    for (size_t i = 0; i < 1; i++)
     {
         mRows.append( generateRandomDataRow(i));
     }
@@ -61,7 +62,7 @@ ChannelDataRow ChannelDataModel::generateRandomDataRow(size_t index)
 {
     ChannelDataRow row;
     row.barSetModel = new BarSetModel(this);
-    row.barSetModel->setInitialDatas(mGenerator.generate(1000));
+    row.barSetModel->setInitialDatas(mGenerator.generate(mRange));
 
     switch (index % 4)
     {
@@ -83,13 +84,20 @@ ChannelDataRow ChannelDataModel::generateRandomDataRow(size_t index)
     return row;
 }
 
-void ChannelDataModel::fetchMoreData()
+void ChannelDataModel::fetchMoreData(size_t count)
 {
-    for (auto _one : mRows)
-    {
-        _one.barSetModel->appendDatas(mGenerator.generate(mBatchSize));
-    }
-    mRange += mBatchSize;
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+
+//    size_t batchNum = std::ceil((float)count/mBatchSize);
+//    size_t loadSize = mBatchSize*batchNum;
+//    std::cout<< "Ready to load data count:" << loadSize << std::endl;
+
+//    for (auto _one : mRows)
+//    {
+//        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+//        _one.barSetModel->appendDatas(mGenerator.generate(loadSize));
+//    }
+//    mRange += loadSize;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -130,7 +138,7 @@ int BarSetModel::rowCount(const QModelIndex & parent) const
 void BarSetModel::appendDatas(const QList<float>& datasToAppend)
 {
     auto endPos = m_Amplitudes.count();
-    std::cout<< "begin append datas"<< std::endl;
+    // std::cout<< "begin append datas"<< std::endl;
 
     beginInsertRows(QModelIndex(), endPos, endPos + datasToAppend.count() -1);
     m_Amplitudes.append(datasToAppend);

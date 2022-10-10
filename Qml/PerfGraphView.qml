@@ -6,7 +6,6 @@ import com.biren.dataModel 1.0
 Item{
     id: root
 
-    property int maxDataNumber: controller.displayingDataCount
     property int currentChannelIndex: graphListView.currentIndex
 
     PerfGraphViewController{
@@ -82,6 +81,9 @@ Item{
                             sourceComponent: indicator
 
                         }
+                        onWidthChanged: {
+                            console.log("bar width changed:", width)
+                        }
                     }
                 }
             }
@@ -116,8 +118,8 @@ Item{
 
                 readonly property var __dataSource: model.BarSetModel
                 readonly property color __barColor: model.Color
-                readonly property real __barWidth: root.width / maxDataNumber
                 readonly property int __channelHeight: 100
+                readonly property real __barWidth: root.width / controller.displayingDataCount
 
                 sourceComponent: barSetComp
 
@@ -143,12 +145,12 @@ Item{
         onWheel: {
             if(wheel.modifiers & Qt.ControlModifier){
                 console.log(wheel.x, wheel.pixelDelta, wheel.angleDelta)
-                console.log(
-                    scrollView.flickableItem.contentX,
-                    scrollView.flickableItem.contentY,
-                    scrollView.flickableItem.contentWidth,
-                    scrollView.flickableItem.contentHeight
-                    )
+//                console.log(
+//                    scrollView.flickableItem.contentX,
+//                    scrollView.flickableItem.contentY,
+//                    scrollView.flickableItem.contentWidth,
+//                    scrollView.flickableItem.contentHeight
+//                    )
 
                 //scrollView.flickableItem.contentX += (wheel.angleDelta.y > 0 ? 50 : -50)
                 controller.onWheelScaled(wheel.angleDelta)

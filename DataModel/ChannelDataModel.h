@@ -76,7 +76,7 @@ public:
     virtual int rowCount(const QModelIndex & parent = QModelIndex()) const override;
 
     void addChannelDataBefore(size_t index);
-    void fetchMoreData();
+    void fetchMoreData(size_t count);
 
     size_t getRange() const {return mRange;}
     size_t getBatchSize() const {return mBatchSize;}
@@ -88,6 +88,6 @@ private:
     QList<ChannelDataRow> mRows;
     DataGenerator mGenerator;
 
-    size_t mRange{1000};
-    size_t mBatchSize{500};
+    size_t mRange{20};
+    size_t mBatchSize{15};
 };

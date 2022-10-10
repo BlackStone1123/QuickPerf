@@ -15,11 +15,12 @@ signals:
     void modelChanged();
     void insertRowBefore(int index);
     void displayingDataCountChanged();
+    void fetchMore(size_t count);
 
 public slots:
     void onWheelScaled(const QPointF&);
 
 private:
     QPointer<ChannelDataModel> mDataModel;
-    int mDisplayingDataCount{100};
+    int mDisplayingDataCount{15};
 };

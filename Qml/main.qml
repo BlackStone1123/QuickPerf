@@ -4,7 +4,6 @@ import com.biren.dataModel 1.0
 
 Rectangle {
     id: root
-    color: "lightskyblue"
 
     RowLayout{
         anchors.fill: parent
