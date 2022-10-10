@@ -1,7 +1,9 @@
 #include "PerfGraphViewController.h"
-#include "../DataModel/ChannelDataModel.h"
 #include <iostream>
 #include <QPointF>
+
+#include "../DataModel/ChannelDataModel.h"
+#include "../DataModel/DataGenerator.h"
 
 namespace  {
     const int minimumDisplayingCount{10};
@@ -10,9 +12,19 @@ namespace  {
 PerfGraphViewController::PerfGraphViewController(QObject* parent)
     :QObject(parent)
 {
-    mDataModel = new ChannelDataModel(this);
-    QObject::connect(this, &PerfGraphViewController::insertRowBefore, mDataModel, &ChannelDataModel::addChannelDataBefore);
-    QObject::connect(this, &PerfGraphViewController::fetchMore, mDataModel, &ChannelDataModel::fetchMoreData, Qt::QueuedConnection);
+    QList<QPointer<DataGenerator>> genList;
+    for(int i = 0; i < 10; i++)
+    {
+        genList.append(new RandomDataGenerator(this));
+    }
+
+    mDataModel = new ChannelDataModel(genList, this);
+    QObject::connect(this, &PerfGraphViewController::insertRowBefore, [this](int index){
+        QPointer<DataGenerator> gen = new RandomDataGenerator(this);
+        mDataModel->addChannelDataBefore(index, gen);
+    });
+
+    QObject::connect(this, &PerfGraphViewController::fetchMore, mDataModel, &ChannelDataModel::fetchMoreData);
 }
 
 PerfGraphViewController::~PerfGraphViewController()

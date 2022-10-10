@@ -81,9 +81,6 @@ Item{
                             sourceComponent: indicator
 
                         }
-                        onWidthChanged: {
-                            console.log("bar width changed:", width)
-                        }
                     }
                 }
             }
@@ -144,7 +141,7 @@ Item{
 
         onWheel: {
             if(wheel.modifiers & Qt.ControlModifier){
-                console.log(wheel.x, wheel.pixelDelta, wheel.angleDelta)
+//                console.log(wheel.x, wheel.pixelDelta, wheel.angleDelta)
 //                console.log(
 //                    scrollView.flickableItem.contentX,
 //                    scrollView.flickableItem.contentY,
@@ -161,6 +158,7 @@ Item{
         }
 
         onPressed: {
+            controller.insertRowBefore(currentChannelIndex)
             mouse.accepted = false
         }
     }

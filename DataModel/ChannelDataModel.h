@@ -2,11 +2,10 @@
 #include <QObject>
 #include <QAbstractListModel>
 #include <QList>
-#include <QString>
 #include <QColor>
+#include <QPointer>
 
-#include <random>
-
+class DataGenerator;
 class BarSetModel: public QAbstractListModel
 {
     Q_OBJECT
@@ -27,8 +26,12 @@ public:
     void appendDatas(const QList<float>&);
     void setInitialDatas(const QList<float>&);
 
+    QPointer<DataGenerator> getDataGenerator() const { return mGenerator; }
+    void setDataGenerator(QPointer<DataGenerator> gen) { mGenerator = gen; }
+
 private:
     QList<float> m_Amplitudes;
+    QPointer<DataGenerator> mGenerator;
 };
 
 struct ChannelDataRow
@@ -37,57 +40,39 @@ struct ChannelDataRow
     QColor color {Qt::red};
 };
 
-class DataGenerator
-{
-public:
-    virtual ~DataGenerator(){}
-    virtual QList<float> generate(size_t number)
-    {
-        QList<float> res;
-
-        std::default_random_engine generator;
-        std::normal_distribution<float> distribution(16.0,20.0);
-
-        for (size_t j = 0; j < number; j++)
-        {
-            res << distribution(generator);
-        }
-
-        return res;
-    }
-};
-
 class ChannelDataModel : public QAbstractListModel
 {
     Q_OBJECT
     
 public:
+    using GeneratorList = QList<QPointer<DataGenerator>>;
+    using ChannelRowList = QList<ChannelDataRow>;
+
     enum class ChannelDataRoles : std::uint64_t
     {
         BarSetModel = Qt::UserRole + 1,
         Color
     };
 
-    ChannelDataModel(QObject* parent = nullptr);
+    ChannelDataModel(GeneratorList generators, QObject* parent = nullptr);
     virtual ~ChannelDataModel();
 
     virtual QHash<int,QByteArray> roleNames() const override;
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     virtual int rowCount(const QModelIndex & parent = QModelIndex()) const override;
 
-    void addChannelDataBefore(size_t index);
+    void addChannelDataBefore(size_t index, QPointer<DataGenerator> gen);
     void fetchMoreData(size_t count);
 
     size_t getRange() const {return mRange;}
     size_t getBatchSize() const {return mBatchSize;}
 
-private:
-    ChannelDataRow generateRandomDataRow(size_t index);
+private slots:
+    ChannelDataRow generateChannelDataRow(size_t index, QPointer<DataGenerator> gen);
 
 private:
-    QList<ChannelDataRow> mRows;
-    DataGenerator mGenerator;
+    ChannelRowList mRows;
 
-    size_t mRange{20};
-    size_t mBatchSize{15};
+    size_t mRange{1000};
+    size_t mBatchSize{500};
 };
