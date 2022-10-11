@@ -1,9 +1,10 @@
 #pragma once
 #include "../CommonDefines.h"
-#include <QList>
+#include <QVariant>
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
+#include <random>
 
 class DataGenerator : public QThread
 {
@@ -13,22 +14,21 @@ public:
     DataGenerator(QObject* parent = nullptr);
     virtual ~DataGenerator();
 
-    virtual QList<float> generate(size_t number, bool immediate = false);
+    virtual QVariant generate(size_t number, bool immediate = false);
 
 signals:
-    void dataLoadFinished(const QList<float>&);
+    void dataLoadFinished(const QVariant&);
 
 protected:
-    virtual QList<float> kernelFunc(size_t number) = 0;
+    virtual QVariant kernelFunc(size_t number) = 0;
     virtual void run() override;
+    void exit();
 
+private:
     QMutex mMutex;
     QWaitCondition mCondition;
 
     size_t mCount{0};
-
-private:
-
     bool mRestart{false};
     bool mAbort{false};
 };
@@ -36,9 +36,12 @@ private:
 class RandomDataGenerator: public DataGenerator
 {
 public:
-    RandomDataGenerator(QObject* parent): DataGenerator(parent){}
+    RandomDataGenerator(QObject* parent);
     virtual ~RandomDataGenerator();
 
 private:
-    virtual QList<float> kernelFunc(size_t number) override;
+    virtual QVariant kernelFunc(size_t number) override;
+
+private:
+    std::default_random_engine mRandomEng;
 };

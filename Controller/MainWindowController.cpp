@@ -43,5 +43,5 @@ void MainWindowController::registerMetaTypes()
 {
     qmlRegisterType<PerfGraphViewController>("com.biren.dataModel", 1, 0, "PerfGraphViewController");
     qmlRegisterUncreatableType<ChannelDataModel>("com.biren.dataModel", 1, 0, "ChannelDataModel", "Should not be created from qml file");
-    qRegisterMetaType<QList<float>>();
+    // qRegisterMetaType<QList<float>>();
 }

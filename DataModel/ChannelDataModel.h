@@ -27,7 +27,13 @@ public:
     void setInitialDatas(const QList<float>&);
 
     QPointer<DataGenerator> getDataGenerator() const { return mGenerator; }
-    void setDataGenerator(QPointer<DataGenerator> gen) { mGenerator = gen; }
+    void setDataGenerator(QPointer<DataGenerator> gen);
+
+signals:
+    void getPeresistentIndex(void*, int*);
+
+private slots:
+    void onDataLoadedArrived(const QVariant& data);
 
 private:
     QList<float> m_Amplitudes;
@@ -67,8 +73,9 @@ public:
     size_t getRange() const {return mRange;}
     size_t getBatchSize() const {return mBatchSize;}
 
-private slots:
+private:
     ChannelDataRow generateChannelDataRow(size_t index, QPointer<DataGenerator> gen);
+    void getChannelIndex(void*, int*);
 
 private:
     ChannelRowList mRows;

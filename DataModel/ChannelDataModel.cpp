@@ -63,14 +63,12 @@ void ChannelDataModel::addChannelDataBefore(size_t index, QPointer<DataGenerator
 ChannelDataRow ChannelDataModel::generateChannelDataRow(size_t index, QPointer<DataGenerator> generator)
 {
     ChannelDataRow newRow;
+
     newRow.barSetModel = new BarSetModel(this);
-
-    // Bind the new row with data generator
-    QObject::connect(generator, &DataGenerator::dataLoadFinished, newRow.barSetModel, &BarSetModel::appendDatas);
-    QObject::connect(generator, &DataGenerator::finished, [](){std::cout << "load finished";});
-
-    newRow.barSetModel->setInitialDatas(generator->generate(mRange, true));
+    newRow.barSetModel->setInitialDatas(generator->generate(mRange, true).value<QList<float>>());
     newRow.barSetModel->setDataGenerator(generator);
+
+    QObject::connect(newRow.barSetModel, &BarSetModel::getPeresistentIndex, this, &ChannelDataModel::getChannelIndex);
 
     switch (index % 4)
     {
@@ -89,6 +87,7 @@ ChannelDataRow ChannelDataModel::generateChannelDataRow(size_t index, QPointer<D
     default:
         break;
     }
+
     return newRow;
 }
 
@@ -105,6 +104,20 @@ void ChannelDataModel::fetchMoreData(size_t count)
     mRange += loadSize;
 }
 
+void ChannelDataModel::getChannelIndex(void* item, int* res)
+{
+    if(item)
+    {
+        for (int i = 0; i< mRows.count(); i++)
+        {
+            if(mRows[i].barSetModel == item)
+            {
+                *res = i;
+            }
+        }
+    }
+    return;
+}
 //////////////////////////////////////////////////////////////////////////
 BarSetModel::BarSetModel(QObject* parent)
     : QAbstractListModel(parent)
@@ -142,8 +155,11 @@ int BarSetModel::rowCount(const QModelIndex & parent) const
 
 void BarSetModel::appendDatas(const QList<float>& datasToAppend)
 {
+    int index = -1;
+    emit getPeresistentIndex(this, &index);
+    std::cout<< "begin append datas channel index:"<< index << std::endl;
+
     auto endPos = m_Amplitudes.count();
-    std::cout<< "begin append datas"<< std::endl;
 
     beginInsertRows(QModelIndex(), endPos, endPos + datasToAppend.count() -1);
     m_Amplitudes.append(datasToAppend);
@@ -153,4 +169,16 @@ void BarSetModel::appendDatas(const QList<float>& datasToAppend)
 void BarSetModel::setInitialDatas(const QList<float>& datas)
 {
     m_Amplitudes = datas;
+}
+
+void BarSetModel::onDataLoadedArrived(const QVariant& data)
+{
+    appendDatas(data.value<QList<float>>());
+}
+
+void BarSetModel::setDataGenerator(QPointer<DataGenerator> gen)
+{
+    // Bind the new row with data generator
+    QObject::connect(gen, &DataGenerator::dataLoadFinished, this, &BarSetModel::onDataLoadedArrived);
+    mGenerator = gen;
 }

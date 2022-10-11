@@ -1,24 +1,19 @@
 #include "DataGenerator.h"
-#include <random>
 #include <iostream>
 #include <QMutexLocker>
+
+static unsigned long rseed = 10;
 
 DataGenerator::DataGenerator(QObject* parent)
     : QThread(parent)
 {
-
 }
 
 DataGenerator::~DataGenerator()
 {
-//    mMutex.lock();
-//    mAbort = true;
-//    mCondition.wakeOne();
-//    mMutex.unlock();
-    std::cout << "data gen deletion!" << std::endl;
 }
 
-QList<float> DataGenerator::generate(size_t number, bool immediate)
+QVariant DataGenerator::generate(size_t number, bool immediate)
 {
     if(immediate)
         return kernelFunc(number);
@@ -43,29 +38,44 @@ void DataGenerator::run()
     mMutex.unlock();
 
     sleep(3);
-    QList<float> res = kernelFunc(totalCount);
+    QVariant res = kernelFunc(totalCount);
     emit dataLoadFinished(res);
 }
 
+void DataGenerator::exit()
+{
+    mMutex.lock();
+    mAbort = true;
+    mCondition.wakeOne();
+    mMutex.unlock();
+
+    wait();
+}
+
 ////////////////////////////////////////////////////////////////////
-QList<float> RandomDataGenerator::kernelFunc(size_t number)
+QVariant RandomDataGenerator::kernelFunc(size_t number)
 {
     QList<float> res;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::normal_distribution<float> distribution(16.0,20.0);
+    std::normal_distribution<float> distribution(40.0, 10.0);
 
     for (size_t j = 0; j < number; j++)
     {
-        res << distribution(gen);
+        res << distribution(mRandomEng);
     }
 
-    return res;
+    return QVariant::fromValue(res);
 }
 
 RandomDataGenerator::~RandomDataGenerator()
 {
-    wait();
+    DataGenerator::exit();
     std::cout << "random data gen deletion!" << std::endl;
+}
+
+RandomDataGenerator::RandomDataGenerator(QObject* parent)
+    : DataGenerator(parent)
+{
+    mRandomEng.seed( rseed );
+    rseed *= 100;
 }

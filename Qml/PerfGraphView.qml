@@ -41,13 +41,29 @@ Item{
     }
 
     Component{
+        id: loadingHintComp
+
+        Rectangle {
+            id: hintRec
+            anchors.fill: parent
+
+            Text {
+                id: hintText
+                text: qsTr("loading...")
+                font.pixelSize: 20
+                anchors.centerIn: parent
+            }
+        }
+    }
+
+    Component{
         id: barSetComp
 
         Item{
             id: root
 
             implicitHeight: __channelHeight
-            implicitWidth: __barWidth * innerRepeater.count
+            implicitWidth: innerRepeater.implicitWidth > __ViewWidth ? innerRepeater.implicitWidth : __ViewWidth
 
             Row{
                 id: innerRow
@@ -56,14 +72,16 @@ Item{
                 Repeater{
                     id: innerRepeater
                     model: __dataSource
-                    anchors.fill: parent
+
+                    implicitWidth: __barWidth * count
+                    implicitHeight: __channelHeight
 
                     delegate: Rectangle{
                         id: bar
 
                         anchors.bottom: parent.bottom
-                        width: __barWidth
-                        height: model.Amplitude
+                        implicitWidth: __barWidth
+                        implicitHeight: model.Amplitude
                         color: __barColor
 
                         HoverHandler{
@@ -82,6 +100,15 @@ Item{
 
                         }
                     }
+                }
+
+                Loader{
+                    id: loadingHint
+
+                    active: innerRepeater.width < root.width
+                    width: root.width - innerRepeater.width
+                    height: __channelHeight
+                    sourceComponent: loadingHintComp
                 }
             }
         }
@@ -117,7 +144,7 @@ Item{
                 readonly property color __barColor: model.Color
                 readonly property int __channelHeight: 100
                 readonly property real __barWidth: root.width / controller.displayingDataCount
-
+                readonly property real __ViewWidth: root.width
                 sourceComponent: barSetComp
 
                 HoverHandler{
@@ -149,7 +176,6 @@ Item{
 //                    scrollView.flickableItem.contentHeight
 //                    )
 
-                //scrollView.flickableItem.contentX += (wheel.angleDelta.y > 0 ? 50 : -50)
                 controller.onWheelScaled(wheel.angleDelta)
                 wheel.accepted = true
             }
