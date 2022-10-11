@@ -75,7 +75,7 @@ public:
 
 private:
     ChannelDataRow generateChannelDataRow(size_t index, QPointer<DataGenerator> gen);
-    void getChannelIndex(void*, int*);
+    void getBarSetModelIndex(void*, int*);
 
 private:
     ChannelRowList mRows;

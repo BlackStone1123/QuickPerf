@@ -2,7 +2,72 @@
 #include <iostream>
 #include "DataGenerator.h"
 #include <cmath>
+////////////////////////////////////////////////////////////////////////////
+BarSetModel::BarSetModel(QObject* parent)
+    : QAbstractListModel(parent)
+{
+}
 
+BarSetModel::~BarSetModel()
+{
+    std::cout << "BarSetModel deletion" << std::endl;
+}
+
+QHash<int,QByteArray> BarSetModel::roleNames() const
+{
+    QHash<int, QByteArray> roles;
+    roles[(int) BarSetModelDataRoles::Amplitude] = "Amplitude";
+
+    return roles;
+}
+
+QVariant BarSetModel::data(const QModelIndex &index, int role) const
+{
+    if (index.row() < 0 || index.row() >= m_Amplitudes.count())
+        return QVariant();
+
+    if (role == (int) BarSetModelDataRoles::Amplitude)
+        return m_Amplitudes[index.row()];
+
+    return QVariant();
+}
+
+int BarSetModel::rowCount(const QModelIndex & parent) const
+{
+    return m_Amplitudes.count();
+}
+
+void BarSetModel::appendDatas(const QList<float>& datasToAppend)
+{
+    int index = -1;
+    emit getPeresistentIndex(this, &index);
+    std::cout<< "begin append datas channel index:"<< index << std::endl;
+
+    auto endPos = m_Amplitudes.count();
+
+    beginInsertRows(QModelIndex(), endPos, endPos + datasToAppend.count() -1);
+    m_Amplitudes.append(datasToAppend);
+    endInsertRows();
+}
+
+void BarSetModel::setInitialDatas(const QList<float>& datas)
+{
+    m_Amplitudes = datas;
+}
+
+void BarSetModel::onDataLoadedArrived(const QVariant& data)
+{
+    appendDatas(data.value<QList<float>>());
+}
+
+void BarSetModel::setDataGenerator(QPointer<DataGenerator> gen)
+{
+    // Bind the new row with data generator
+    QObject::connect(gen, &DataGenerator::dataLoadFinished, this, &BarSetModel::onDataLoadedArrived);
+    mGenerator = gen;
+}
+
+////////////////////////////////////////////////////////////////////////////
 ChannelDataModel::ChannelDataModel(GeneratorList generators, QObject* parent)
     : QAbstractListModel(parent)
 {
@@ -68,7 +133,7 @@ ChannelDataRow ChannelDataModel::generateChannelDataRow(size_t index, QPointer<D
     newRow.barSetModel->setInitialDatas(generator->generate(mRange, true).value<QList<float>>());
     newRow.barSetModel->setDataGenerator(generator);
 
-    QObject::connect(newRow.barSetModel, &BarSetModel::getPeresistentIndex, this, &ChannelDataModel::getChannelIndex);
+    QObject::connect(newRow.barSetModel, &BarSetModel::getPeresistentIndex, this, &ChannelDataModel::getBarSetModelIndex);
 
     switch (index % 4)
     {
@@ -104,7 +169,7 @@ void ChannelDataModel::fetchMoreData(size_t count)
     mRange += loadSize;
 }
 
-void ChannelDataModel::getChannelIndex(void* item, int* res)
+void ChannelDataModel::getBarSetModelIndex(void* item, int* res)
 {
     if(item)
     {
@@ -117,68 +182,4 @@ void ChannelDataModel::getChannelIndex(void* item, int* res)
         }
     }
     return;
-}
-//////////////////////////////////////////////////////////////////////////
-BarSetModel::BarSetModel(QObject* parent)
-    : QAbstractListModel(parent)
-{
-}
-
-BarSetModel::~BarSetModel()
-{
-    std::cout << "BarSetModel deletion" << std::endl;
-}
-
-QHash<int,QByteArray> BarSetModel::roleNames() const 
-{
-    QHash<int, QByteArray> roles;
-    roles[(int) BarSetModelDataRoles::Amplitude] = "Amplitude";
-
-    return roles;
-}
-
-QVariant BarSetModel::data(const QModelIndex &index, int role) const 
-{
-    if (index.row() < 0 || index.row() >= m_Amplitudes.count())
-        return QVariant();
-
-    if (role == (int) BarSetModelDataRoles::Amplitude)
-        return m_Amplitudes[index.row()];
-    
-    return QVariant();
-}
-
-int BarSetModel::rowCount(const QModelIndex & parent) const 
-{
-    return m_Amplitudes.count();
-}
-
-void BarSetModel::appendDatas(const QList<float>& datasToAppend)
-{
-    int index = -1;
-    emit getPeresistentIndex(this, &index);
-    std::cout<< "begin append datas channel index:"<< index << std::endl;
-
-    auto endPos = m_Amplitudes.count();
-
-    beginInsertRows(QModelIndex(), endPos, endPos + datasToAppend.count() -1);
-    m_Amplitudes.append(datasToAppend);
-    endInsertRows();
-}
-
-void BarSetModel::setInitialDatas(const QList<float>& datas)
-{
-    m_Amplitudes = datas;
-}
-
-void BarSetModel::onDataLoadedArrived(const QVariant& data)
-{
-    appendDatas(data.value<QList<float>>());
-}
-
-void BarSetModel::setDataGenerator(QPointer<DataGenerator> gen)
-{
-    // Bind the new row with data generator
-    QObject::connect(gen, &DataGenerator::dataLoadFinished, this, &BarSetModel::onDataLoadedArrived);
-    mGenerator = gen;
 }

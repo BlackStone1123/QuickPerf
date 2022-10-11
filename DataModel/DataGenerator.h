@@ -29,6 +29,8 @@ private:
     QWaitCondition mCondition;
 
     size_t mCount{0};
+    QList<size_t> mGenReq;
+
     bool mRestart{false};
     bool mAbort{false};
 };
