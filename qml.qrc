@@ -3,5 +3,6 @@
         <file>Qml/main.qml</file>
         <file>Qml/PerfListView.qml</file>
         <file>Qml/PerfGraphView.qml</file>
+        <file>Qml/GraphBorder.qml</file>
     </qresource>
 </RCC>

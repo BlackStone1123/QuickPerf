@@ -13,7 +13,7 @@ PerfGraphViewController::PerfGraphViewController(QObject* parent)
     :QObject(parent)
 {
     QList<QPointer<DataGenerator>> genList;
-    for(int i = 0; i < 10; i++)
+    for(int i = 0; i < 6; i++)
     {
         genList.append(new RandomDataGenerator(this));
     }
@@ -39,10 +39,51 @@ void PerfGraphViewController::onWheelScaled(const QPointF& point)
 
     emit displayingDataCountChanged();
 
-    int diff = (size_t)mDisplayingDataCount - mDataModel->getRange();
+    int diff = (size_t)mDisplayingDataCount + mRangeStart - mDataModel->getRange();
     if(diff>0)
     {
         std::cout << "Out of boundary, more data is required:"<< diff << std::endl;
-        emit fetchMore(mDisplayingDataCount-mDataModel->getRange());
+        emit fetchMore(diff);
     }
+}
+
+void PerfGraphViewController::onLeftKeyPressed()
+{
+    int dataStride = mDisplayingDataCount / 5;
+
+    if(mRangeStart <= 0)
+    {
+        std::cout << "reach to the left end, can not scroll any more!" << std::endl;
+        return;
+    }
+    else if(mRangeStart-dataStride < 0)
+    {
+        mRangeStart = 0;
+    }
+    else
+    {
+        mRangeStart-=dataStride;
+    }
+    emit rangeStartPosChanged();
+}
+
+void PerfGraphViewController::onRightKeyPressed()
+{
+    size_t dataStride = mDisplayingDataCount / 5;
+    size_t rangeEnd = mDisplayingDataCount + mRangeStart;
+
+    if(rangeEnd >= mDataModel->getRange())
+    {
+        std::cout << "reach to the right end, can not scroll any more!" << std::endl;
+        return;
+    }
+    else if(mDataModel->getRange()-rangeEnd < dataStride)
+    {
+        mRangeStart += mDataModel->getRange() - rangeEnd;
+    }
+    else
+    {
+        mRangeStart += dataStride;
+    }
+    emit rangeStartPosChanged();
 }

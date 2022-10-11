@@ -6,6 +6,7 @@
 
 #include "PerfGraphViewController.h"
 #include "../DataModel/ChannelDataModel.h"
+#include "../CustomWidget/PointSetItem.h"
 
 static const std::string title = "Performance Tool";
 
@@ -42,6 +43,6 @@ QPointer<QQuickView> MainWindowController::createQuickView(const QUrl& url, size
 void MainWindowController::registerMetaTypes()
 {
     qmlRegisterType<PerfGraphViewController>("com.biren.dataModel", 1, 0, "PerfGraphViewController");
+    qmlRegisterType<PointSetItem>("com.biren.dataModel", 1, 0, "PointSetItem");
     qmlRegisterUncreatableType<ChannelDataModel>("com.biren.dataModel", 1, 0, "ChannelDataModel", "Should not be created from qml file");
-    // qRegisterMetaType<QList<float>>();
 }

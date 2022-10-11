@@ -1,7 +1,7 @@
 import QtQuick 2.12
 import QtQml.Models 2.12
 
-Item{
+FocusScope{
     id: root
 
     ListModel {
@@ -47,9 +47,15 @@ Item{
         id: view
 
         anchors.fill: parent
+        focus: true
+
         model: fruitModel
         delegate: fruitDelegate
-        highlight: Rectangle { color: "lightsteelblue"; radius: 2 }
-        interactive: false
+        highlight: Rectangle { color: "green"; radius: 2 }
+    }
+
+    GraphBorder{
+        id: border
+        visible: root.activeFocus
     }
 }

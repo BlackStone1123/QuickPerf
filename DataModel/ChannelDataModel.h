@@ -49,7 +49,8 @@ struct ChannelDataRow
 class ChannelDataModel : public QAbstractListModel
 {
     Q_OBJECT
-    
+    Q_PROPERTY(int range MEMBER mRange NOTIFY rangeChanged)
+
 public:
     using GeneratorList = QList<QPointer<DataGenerator>>;
     using ChannelRowList = QList<ChannelDataRow>;
@@ -72,6 +73,9 @@ public:
 
     size_t getRange() const {return mRange;}
     size_t getBatchSize() const {return mBatchSize;}
+
+signals:
+    void rangeChanged();
 
 private:
     ChannelDataRow generateChannelDataRow(size_t index, QPointer<DataGenerator> gen);

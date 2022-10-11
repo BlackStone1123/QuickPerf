@@ -9,6 +9,7 @@ DataGenerator::DataGenerator(QObject* parent)
 {
     QObject::connect(this, &QThread::finished, this, [this](){
         this->mGenReq.clear();
+        std::cout << "the worker thread finished" << std::endl;
     });
 }
 
@@ -20,9 +21,6 @@ QVariant DataGenerator::generate(size_t number, bool immediate)
 {
     if(immediate)
         return kernelFunc(number);
-
-    //QMutexLocker locker(&mMutex);
-    //mCount = number;
 
     if(!isRunning())
     {
@@ -39,14 +37,6 @@ QVariant DataGenerator::generate(size_t number, bool immediate)
 
 void DataGenerator::run()
 {
-//    mMutex.lock();
-//    int totalCount = this->mCount;
-//    mMutex.unlock();
-
-//    sleep(3);
-//    QVariant res = kernelFunc(totalCount);
-//    emit dataLoadFinished(res);
-
     size_t batchExecuted = 0;
     size_t totalbatchCount = 0;
     size_t currentBatchNum = 0;
@@ -56,7 +46,7 @@ void DataGenerator::run()
     {
         mMutex.lock();
         totalbatchCount = this->mGenReq.count();
-        currentBatchNum = this->mGenReq.back();
+        currentBatchNum = batchExecuted == totalbatchCount ? 0 : this->mGenReq.at(batchExecuted);
         taskAbort = this->mAbort;
         mMutex.unlock();
 
@@ -67,8 +57,9 @@ void DataGenerator::run()
         else
         {
             QVariant res = kernelFunc(currentBatchNum);
+            sleep(2);
             emit dataLoadFinished(res);
-            batchExecuted = totalbatchCount;
+            batchExecuted++;
         }
     }
 }
@@ -86,7 +77,6 @@ void DataGenerator::exit()
 ////////////////////////////////////////////////////////////////////
 QVariant RandomDataGenerator::kernelFunc(size_t number)
 {
-    sleep(3);
     QList<float> res;
 
     std::normal_distribution<float> distribution(40.0, 10.0);

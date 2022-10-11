@@ -41,7 +41,7 @@ void BarSetModel::appendDatas(const QList<float>& datasToAppend)
 {
     int index = -1;
     emit getPeresistentIndex(this, &index);
-    std::cout<< "begin append datas channel index:"<< index << std::endl;
+    std::cout<< "begin append datas channel index:"<< index << " data size:" << datasToAppend.count() << std::endl;
 
     auto endPos = m_Amplitudes.count();
 
@@ -167,6 +167,7 @@ void ChannelDataModel::fetchMoreData(size_t count)
         _one.barSetModel->getDataGenerator()->generate(loadSize);
     }
     mRange += loadSize;
+    emit rangeChanged();
 }
 
 void ChannelDataModel::getBarSetModelIndex(void* item, int* res)

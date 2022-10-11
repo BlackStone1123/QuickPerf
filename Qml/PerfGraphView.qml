@@ -3,7 +3,7 @@ import QtQuick.Layouts 1.0
 import QtQuick.Controls 1.0
 import com.biren.dataModel 1.0
 
-Item{
+FocusScope{
     id: root
 
     property int currentChannelIndex: graphListView.currentIndex
@@ -45,7 +45,6 @@ Item{
 
         Rectangle {
             id: hintRec
-            anchors.fill: parent
 
             Text {
                 id: hintText
@@ -67,6 +66,7 @@ Item{
 
             Row{
                 id: innerRow
+
                 anchors.fill: parent
 
                 Repeater{
@@ -102,11 +102,26 @@ Item{
                     }
                 }
 
+//                Loader{
+//                    id: pointSet
+
+//                    active: __switch
+
+//                    width: __barWidth * innerRepeater.count
+//                    height: __channelHeight
+
+//                    sourceComponent: Component{
+//                        id: pointSetComp
+
+//                        PointSetItem{}
+//                    }
+//                }
+
                 Loader{
                     id: loadingHint
 
-                    active: innerRepeater.width < root.width
-                    width: root.width - innerRepeater.width
+                    active: innerRepeater.width - __contentX < __ViewWidth
+                    width: __ViewWidth - innerRepeater.width + __contentX
                     height: __channelHeight
                     sourceComponent: loadingHintComp
                 }
@@ -116,12 +131,15 @@ Item{
 
     ScrollView{
         id: scrollView
+
         anchors.fill: parent
+        focus: true
 
         ListView{
             id: graphListView
-            model: controller.graphModel
+
             focus: true
+            model: controller.graphModel
 
             add: Transition{
                 NumberAnimation { properties: "opacity"; from: 0; to: 1.0; duration: 200}
@@ -136,6 +154,7 @@ Item{
             }
 
             contentWidth: contentItem.childrenRect.width
+            contentX: root.width * controller.rangeStartPos / controller.displayingDataCount
 
             delegate: Loader{
                 id: barSetLoader
@@ -145,22 +164,21 @@ Item{
                 readonly property int __channelHeight: 100
                 readonly property real __barWidth: root.width / controller.displayingDataCount
                 readonly property real __ViewWidth: root.width
-                sourceComponent: barSetComp
+                readonly property real __contentX: graphListView.contentX
+                readonly property bool __switch: controller.displayingDataCount > 5000
+                readonly property int __range: controller.graphModel.range
 
-                HoverHandler{
-                    onHoveredChanged: {
-                        if(hovered)
-                        {
-                            graphListView.currentIndex = model.index
-                        }
-                    }
-                }
+                sourceComponent: barSetComp
             }
         }
 
         horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
     }
 
+    GraphBorder{
+        id: border
+        visible: root.activeFocus
+    }
 
     MouseArea{
         id: scrollArea
@@ -184,8 +202,24 @@ Item{
         }
 
         onPressed: {
-            controller.insertRowBefore(currentChannelIndex)
             mouse.accepted = false
+        }
+    }
+
+    Keys.onPressed: {
+        if (event.key === Qt.Key_A) {
+            console.log("move left");
+            controller.onLeftKeyPressed()
+        }
+        else if(event.key === Qt.Key_D){
+            console.log("move right");
+            controller.onRightKeyPressed()
+        }
+        else if(event.key === Qt.Key_W){
+            graphListView.decrementCurrentIndex()
+        }
+        else if(event.key === Qt.Key_S){
+            graphListView.incrementCurrentIndex()
         }
     }
 }

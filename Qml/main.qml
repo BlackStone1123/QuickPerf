@@ -15,6 +15,8 @@ Rectangle {
             Layout.fillHeight: true
             Layout.preferredWidth: 150
             Layout.minimumWidth: 150
+
+            KeyNavigation.tab: graphView
         }
 
         PerfGraphView{
@@ -22,6 +24,9 @@ Rectangle {
 
             Layout.fillHeight: true
             Layout.fillWidth: true
+
+            KeyNavigation.tab: listView
+            focus: true
         }
     }
 }
