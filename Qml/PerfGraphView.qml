@@ -153,8 +153,8 @@ FocusScope{
                 }
             }
 
-            contentWidth: contentItem.childrenRect.width
-            contentX: root.width * controller.rangeStartPos / controller.displayingDataCount
+            contentWidth: controller.graphModel.range * root.width / controller.displayingDataCount
+            contentX:  controller.rangeStartPos * root.width / controller.displayingDataCount
 
             delegate: Loader{
                 id: barSetLoader
@@ -166,13 +166,12 @@ FocusScope{
                 readonly property real __ViewWidth: root.width
                 readonly property real __contentX: graphListView.contentX
                 readonly property bool __switch: controller.displayingDataCount > 5000
-                readonly property int __range: controller.graphModel.range
 
                 sourceComponent: barSetComp
             }
         }
 
-        horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
+        //horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
     }
 
     GraphBorder{
