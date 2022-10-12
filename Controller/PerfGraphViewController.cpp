@@ -5,10 +5,6 @@
 #include "../DataModel/ChannelDataModel.h"
 #include "../DataModel/DataGenerator.h"
 
-namespace  {
-    const int minimumDisplayingCount{10};
-}
-
 PerfGraphViewController::PerfGraphViewController(QObject* parent)
     :QObject(parent)
 {
@@ -35,13 +31,25 @@ PerfGraphViewController::~PerfGraphViewController()
 void PerfGraphViewController::onWheelScaled(const QPointF& point)
 {
     int scaledNumber = mDisplayingDataCount * (point.y() > 0 ? 0.8 : 1.2);
-    scaledNumber = scaledNumber > minimumDisplayingCount ? scaledNumber : minimumDisplayingCount;
+    scaledNumber = std::max(scaledNumber, MINIMUM_DISPLAYING_DATA_COUNT);
 
     if(mDisplayingDataCount != scaledNumber)
     {
         mDisplayingDataCount = scaledNumber;
 
         emit displayingDataCountChanged();
+
+        if(mDisplayingDataCount > MAXIMUM_DISPLAYING_DATA_COUNT && !mSwitchDelegate)
+        {
+            mSwitchDelegate = true;
+            emit switchDelegateChanged();
+        }
+
+        if(mDisplayingDataCount < MAXIMUM_DISPLAYING_DATA_COUNT && mSwitchDelegate)
+        {
+            mSwitchDelegate = false;
+            emit switchDelegateChanged();
+        }
 
         int diff = (size_t)mDisplayingDataCount + mRangeStart - mDataModel->getRange();
         if(diff>0)
@@ -61,14 +69,14 @@ void PerfGraphViewController::onLeftKeyPressed()
         std::cout << "reach to the left end, can not scroll any more!" << std::endl;
         return;
     }
-    else if(mRangeStart-dataStride < 0)
+
+    if(mRangeStart-dataStride < 0)
     {
-        mRangeStart = 0;
+        dataStride = mRangeStart;
     }
-    else
-    {
-        mRangeStart-=dataStride;
-    }
+    mRangeStart-=dataStride;
+
+    //mDataModel->move(dataStride, false);
     emit rangeStartPosChanged();
 }
 
@@ -82,13 +90,13 @@ void PerfGraphViewController::onRightKeyPressed()
         std::cout << "reach to the right end, can not scroll any more!" << std::endl;
         return;
     }
-    else if(mDataModel->getRange()-rangeEnd < dataStride)
+
+    if(mDataModel->getRange()-rangeEnd < dataStride)
     {
-        mRangeStart += mDataModel->getRange() - rangeEnd;
+        dataStride = mDataModel->getRange() - rangeEnd;
     }
-    else
-    {
-        mRangeStart += dataStride;
-    }
+    mRangeStart += dataStride;
+
+    //mDataModel->move(dataStride, true);
     emit rangeStartPosChanged();
 }

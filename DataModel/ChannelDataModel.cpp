@@ -34,7 +34,7 @@ QVariant BarSetModel::data(const QModelIndex &index, int role) const
 
 int BarSetModel::rowCount(const QModelIndex & parent) const
 {
-    return m_Amplitudes.count();
+    return std::min(m_Amplitudes.count(), MAXIMUM_BAR_SET_DATA_COUNT);
 }
 
 void BarSetModel::appendDatas(const QList<qreal>& datasToAppend)

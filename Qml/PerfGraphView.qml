@@ -90,8 +90,8 @@ FocusScope{
                                 id: innerRepeater
                                 model: __dataSource
 
-                            implicitWidth: __barWidth * count
-                            implicitHeight: __channelHeight
+                                implicitWidth: __barWidth * count
+                                implicitHeight: __channelHeight
 
                                 delegate: Rectangle{
                                     id: bar
@@ -140,6 +140,7 @@ FocusScope{
 
                             stride: __barWidth
                             pointSetModel: __dataSource.bundle
+                            lineColor: __barColor
                         }
                     }
                 }
@@ -148,8 +149,7 @@ FocusScope{
                     id: loadingHint
 
                     active: __dataSource.loading && __barSetWidth - __contentX < __viewWidth
-                    //Layout.preferredWidth: __viewWidth - __barSetWidth + __contentX
-                    Layout.fillWidth: true
+                    Layout.preferredWidth: __viewWidth - __barSetWidth + __contentX
                     Layout.fillHeight: true
                     sourceComponent: loadingHintComp
                 }
@@ -159,7 +159,7 @@ FocusScope{
                 id: endingLine
                 anchors.top: root.bottom
                 height: 1
-                width: root.width
+                width: __contentWidth
                 color: "#d7d7d7"
             }
         }
@@ -201,7 +201,8 @@ FocusScope{
                 readonly property real __barWidth: root.width / controller.displayingDataCount
                 readonly property real __viewWidth: root.width
                 readonly property real __contentX: graphListView.contentX
-                readonly property bool __switch: controller.displayingDataCount > 1000
+                readonly property real __contentWidth: graphListView.contentWidth
+                readonly property bool __switch: controller.switchDelegate
 
                 sourceComponent: barSetComp
             }

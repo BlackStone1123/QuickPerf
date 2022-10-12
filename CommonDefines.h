@@ -1,3 +1,9 @@
 #include <QObject>
 #include <QPointer>
 #include <memory>
+
+#define MAXIMUM_DISPLAYING_DATA_COUNT 1000
+#define MAXIMUM_BAR_SET_DATA_COUNT 1500
+#define MINIMUM_DISPLAYING_DATA_COUNT 10
+#define INITIAL_DATA_RANGE 1000
+#define LOADING_BATCH_SIZE 500

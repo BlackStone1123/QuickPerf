@@ -4,6 +4,7 @@
 #include <QList>
 #include <QColor>
 #include <QPointer>
+#include "../CommonDefines.h"
 
 class DataGenerator;
 class BarSetModel: public QAbstractListModel
@@ -77,8 +78,8 @@ public:
     void addChannelDataBefore(size_t index, QPointer<DataGenerator> gen);
     void fetchMoreData(size_t count);
 
+    void move(size_t count, bool forward);
     size_t getRange() const {return mRange;}
-    size_t getBatchSize() const {return mBatchSize;}
 
 signals:
     void rangeChanged();
@@ -90,6 +91,6 @@ private:
 private:
     ChannelRowList mRows;
 
-    size_t mRange{1000};
-    size_t mBatchSize{500};
+    size_t mRange{ INITIAL_DATA_RANGE };
+    size_t mBatchSize{ LOADING_BATCH_SIZE };
 };

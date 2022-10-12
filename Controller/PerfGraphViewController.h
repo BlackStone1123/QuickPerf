@@ -8,6 +8,7 @@ class PerfGraphViewController : public QObject
     Q_PROPERTY(ChannelDataModel* graphModel MEMBER mDataModel NOTIFY modelChanged)
     Q_PROPERTY(int displayingDataCount MEMBER mDisplayingDataCount NOTIFY displayingDataCountChanged)
     Q_PROPERTY(int rangeStartPos MEMBER mRangeStart NOTIFY rangeStartPosChanged)
+    Q_PROPERTY(bool switchDelegate MEMBER mSwitchDelegate NOTIFY switchDelegateChanged)
 
 public:
     PerfGraphViewController(QObject* parent = nullptr);
@@ -19,6 +20,7 @@ signals:
     void displayingDataCountChanged();
     void fetchMore(size_t count);
     void rangeStartPosChanged();
+    void switchDelegateChanged();
 
 public slots:
     void onWheelScaled(const QPointF&);
@@ -30,4 +32,5 @@ private:
 
     int mDisplayingDataCount{100};
     int mRangeStart{0};
+    bool mSwitchDelegate{false};
 };

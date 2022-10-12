@@ -5,6 +5,7 @@ Item {
 
     property var pointSetModel: null
     property real stride: 1.0
+    property var lineColor: "red"
 
     Canvas {
         id: canvas
@@ -59,7 +60,6 @@ Item {
         function drawLines(ctx, color, points)
         {
             ctx.save();
-            ctx.globalAlpha = 0.7;
             ctx.strokeStyle = color;
             ctx.lineWidth = 1
 
@@ -94,8 +94,7 @@ Item {
                 points.push({x: i * stride, y: pointSetModel[i]});
             }
 
-            drawLines(ctx, "red", points);
-            console.log("point set paint");
+            drawLines(ctx, lineColor, points);
         }
     }
 }
