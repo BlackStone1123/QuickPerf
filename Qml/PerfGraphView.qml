@@ -72,78 +72,50 @@ FocusScope{
 
                 anchors.fill: parent
 
-                //                Repeater{
-                //                    id: innerRepeater
-                //                    model: __dataSource
-
-                //                    implicitWidth: __barWidth * count
-                //                    implicitHeight: __channelHeight
-
-                //                    delegate: Rectangle{
-                //                        id: bar
-
-                //                        anchors.bottom: parent.bottom
-                //                        implicitWidth: __barWidth
-                //                        implicitHeight: model.Amplitude
-                //                        color: __barColor
-
-                //                        HoverHandler{
-                //                            id: hoverHandler
-                //                        }
-
-                //                        Loader{
-                //                            id: indicatorLoader
-
-                //                            property string indicatorText: bar.height
-
-                //                            anchors.bottom: bar.top
-                //                            width: bar.width
-                //                            active: hoverHandler.hovered
-                //                            sourceComponent: indicator
-
-                //                        }
-                //                    }
-                //                }
-
                 Loader{
                     id: rectangleViewLoader
 
                     Layout.preferredWidth: __barSetWidth
                     Layout.fillHeight: true
                     active: !__switch
+                    visible: !__switch
 
                     sourceComponent: Component{
                         id: recViewComp
 
-                        Repeater{
-                            id: innerRepeater
-                            model: __dataSource
+                        Row{
+                            id: repeaterRow
+
+                            Repeater{
+                                id: innerRepeater
+                                model: __dataSource
 
                             implicitWidth: __barWidth * count
                             implicitHeight: __channelHeight
 
-                            delegate: Rectangle{
-                                id: bar
+                                delegate: Rectangle{
+                                    id: bar
 
-                                anchors.bottom: parent.bottom
-                                implicitWidth: __barWidth
-                                implicitHeight: model.Amplitude
-                                color: __barColor
+                                    anchors.bottom: parent.bottom
+                                    implicitWidth: __barWidth
+                                    implicitHeight: model.Amplitude
+                                    color: __barColor
 
-                                HoverHandler{
-                                    id: hoverHandler
-                                }
+                                    HoverHandler{
+                                        id: hoverHandler
+                                    }
 
-                                Loader{
-                                    id: indicatorLoader
+                                    Loader{
+                                        id: indicatorLoader
 
-                                    property string indicatorText: bar.height
+                                        property string indicatorText: bar.height
 
-                                    anchors.bottom: bar.top
-                                    width: bar.width
-                                    active: hoverHandler.hovered
-                                    sourceComponent: indicator
+                                        anchors.bottom: bar.top
+                                        width: bar.width
+                                        active: hoverHandler.hovered
+                                        sourceComponent: indicator
 
+                                    }
                                 }
                             }
                         }
@@ -156,6 +128,7 @@ FocusScope{
                     Layout.preferredWidth: __barSetWidth
                     Layout.fillHeight: true
                     active: __switch
+                    visible: __switch
 
                     sourceComponent: Component{
                         id: ptComp
@@ -175,7 +148,8 @@ FocusScope{
                     id: loadingHint
 
                     active: __dataSource.loading && __barSetWidth - __contentX < __viewWidth
-                    Layout.preferredWidth: __viewWidth - __barSetWidth + __contentX
+                    //Layout.preferredWidth: __viewWidth - __barSetWidth + __contentX
+                    Layout.fillWidth: true
                     Layout.fillHeight: true
                     sourceComponent: loadingHintComp
                 }
