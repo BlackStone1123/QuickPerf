@@ -8,7 +8,7 @@
 #include "../DataModel/ChannelDataModel.h"
 #include "../CustomWidget/PointSetItem.h"
 
-static const std::string title = "Performance Tool";
+static const std::string title = "QuickPerf";
 
 MainWindowController::MainWindowController()
 {

@@ -63,69 +63,130 @@ FocusScope{
             id: root
 
             implicitHeight: __channelHeight
-            implicitWidth: __ViewWidth
+            implicitWidth: __viewWidth
 
-            Row{
+            readonly property real __barSetWidth: __barWidth * __dataSource.bundle.length
+
+            RowLayout{
                 id: innerRow
 
                 anchors.fill: parent
 
-                Repeater{
-                    id: innerRepeater
-                    model: __dataSource
+                //                Repeater{
+                //                    id: innerRepeater
+                //                    model: __dataSource
 
-                    implicitWidth: __barWidth * count
-                    implicitHeight: __channelHeight
+                //                    implicitWidth: __barWidth * count
+                //                    implicitHeight: __channelHeight
 
-                    delegate: Rectangle{
-                        id: bar
+                //                    delegate: Rectangle{
+                //                        id: bar
 
-                        anchors.bottom: parent.bottom
-                        implicitWidth: __barWidth
-                        implicitHeight: model.Amplitude
-                        color: __barColor
+                //                        anchors.bottom: parent.bottom
+                //                        implicitWidth: __barWidth
+                //                        implicitHeight: model.Amplitude
+                //                        color: __barColor
 
-                        HoverHandler{
-                            id: hoverHandler
-                        }
+                //                        HoverHandler{
+                //                            id: hoverHandler
+                //                        }
 
-                        Loader{
-                            id: indicatorLoader
+                //                        Loader{
+                //                            id: indicatorLoader
 
-                            property string indicatorText: bar.height
+                //                            property string indicatorText: bar.height
 
-                            anchors.bottom: bar.top
-                            width: bar.width
-                            active: hoverHandler.hovered
-                            sourceComponent: indicator
+                //                            anchors.bottom: bar.top
+                //                            width: bar.width
+                //                            active: hoverHandler.hovered
+                //                            sourceComponent: indicator
 
+                //                        }
+                //                    }
+                //                }
+
+                Loader{
+                    id: rectangleViewLoader
+
+                    Layout.preferredWidth: __barSetWidth
+                    Layout.fillHeight: true
+                    active: !__switch
+
+                    sourceComponent: Component{
+                        id: recViewComp
+
+                        Repeater{
+                            id: innerRepeater
+                            model: __dataSource
+
+                            implicitWidth: __barWidth * count
+                            implicitHeight: __channelHeight
+
+                            delegate: Rectangle{
+                                id: bar
+
+                                anchors.bottom: parent.bottom
+                                implicitWidth: __barWidth
+                                implicitHeight: model.Amplitude
+                                color: __barColor
+
+                                HoverHandler{
+                                    id: hoverHandler
+                                }
+
+                                Loader{
+                                    id: indicatorLoader
+
+                                    property string indicatorText: bar.height
+
+                                    anchors.bottom: bar.top
+                                    width: bar.width
+                                    active: hoverHandler.hovered
+                                    sourceComponent: indicator
+
+                                }
+                            }
                         }
                     }
                 }
 
-//                Loader{
-//                    id: pointSet
+                Loader{
+                    id: pointSetViewLoader
 
-//                    active: __switch
+                    Layout.preferredWidth: __barSetWidth
+                    Layout.fillHeight: true
+                    active: __switch
 
-//                    width: __barWidth * innerRepeater.count
-//                    height: __channelHeight
+                    sourceComponent: Component{
+                        id: ptComp
 
-//                    sourceComponent: Component{
-//                        id: pointSetComp
+                        PointSetView{
+                            id: pointSet
+                            implicitWidth: __barSetWidth
+                            implicitHeight: __channelHeight
 
-//                        PointSetItem{}
-//                    }
-//                }
+                            stride: __barWidth
+                            pointSetModel: __dataSource.bundle
+                        }
+                    }
+                }
 
                 Loader{
                     id: loadingHint
 
-                    active: __dataSource.loading
-                    width: __ViewWidth - innerRepeater.width + __contentX
-                    height: __channelHeight
+                    active: __dataSource.loading && __barSetWidth - __contentX < __viewWidth
+                    Layout.preferredWidth: __viewWidth - __barSetWidth + __contentX
+                    Layout.fillHeight: true
                     sourceComponent: loadingHintComp
                 }
+            }
+
+            Rectangle {
+                id: endingLine
+                anchors.top: root.bottom
+                height: 1
+                width: root.width
+                color: "#d7d7d7"
             }
         }
     }
@@ -164,9 +225,9 @@ FocusScope{
                 readonly property color __barColor: model.Color
                 readonly property int __channelHeight: 100
                 readonly property real __barWidth: root.width / controller.displayingDataCount
-                readonly property real __ViewWidth: root.width
+                readonly property real __viewWidth: root.width
                 readonly property real __contentX: graphListView.contentX
-                readonly property bool __switch: controller.displayingDataCount > 5000
+                readonly property bool __switch: controller.displayingDataCount > 1000
 
                 sourceComponent: barSetComp
             }

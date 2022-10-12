@@ -4,5 +4,6 @@
         <file>Qml/PerfListView.qml</file>
         <file>Qml/PerfGraphView.qml</file>
         <file>Qml/GraphBorder.qml</file>
+        <file>Qml/PointSetView.qml</file>
     </qresource>
 </RCC>

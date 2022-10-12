@@ -13,7 +13,7 @@ PerfGraphViewController::PerfGraphViewController(QObject* parent)
     :QObject(parent)
 {
     QList<QPointer<DataGenerator>> genList;
-    for(int i = 0; i < 6; i++)
+    for(int i = 0; i < 1; i++)
     {
         genList.append(new RandomDataGenerator(this));
     }
