@@ -35,15 +35,20 @@ PerfGraphViewController::~PerfGraphViewController()
 void PerfGraphViewController::onWheelScaled(const QPointF& point)
 {
     int scaledNumber = mDisplayingDataCount * (point.y() > 0 ? 0.8 : 1.2);
-    mDisplayingDataCount = scaledNumber > minimumDisplayingCount ? scaledNumber : minimumDisplayingCount;
+    scaledNumber = scaledNumber > minimumDisplayingCount ? scaledNumber : minimumDisplayingCount;
 
-    emit displayingDataCountChanged();
-
-    int diff = (size_t)mDisplayingDataCount + mRangeStart - mDataModel->getRange();
-    if(diff>0)
+    if(mDisplayingDataCount != scaledNumber)
     {
-        std::cout << "Out of boundary, more data is required:"<< diff << std::endl;
-        emit fetchMore(diff);
+        mDisplayingDataCount = scaledNumber;
+
+        emit displayingDataCountChanged();
+
+        int diff = (size_t)mDisplayingDataCount + mRangeStart - mDataModel->getRange();
+        if(diff>0)
+        {
+            std::cout << "Out of boundary, more data is required:"<< diff << std::endl;
+            emit fetchMore(diff);
+        }
     }
 }
 

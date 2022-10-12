@@ -9,7 +9,9 @@ class DataGenerator;
 class BarSetModel: public QAbstractListModel
 {
     Q_OBJECT
-    
+    Q_PROPERTY(QList<qreal> bundle MEMBER m_Amplitudes NOTIFY bundleUpdated)
+    Q_PROPERTY(bool loading MEMBER mLoading NOTIFY loadingUpdated)
+
 public:
     enum class BarSetModelDataRoles : std::uint64_t
     {
@@ -23,21 +25,26 @@ public:
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     virtual int rowCount(const QModelIndex & parent = QModelIndex()) const override;
 
-    void appendDatas(const QList<float>&);
-    void setInitialDatas(const QList<float>&);
+    void appendDatas(const QList<qreal>&);
+    void setInitialDatas(const QList<qreal>&);
 
     QPointer<DataGenerator> getDataGenerator() const { return mGenerator; }
     void setDataGenerator(QPointer<DataGenerator> gen);
 
+    void startLoading(size_t loadSize);
 signals:
     void getPeresistentIndex(void*, int*);
+    void bundleUpdated();
+    void loadingUpdated();
 
 private slots:
     void onDataLoadedArrived(const QVariant& data);
 
 private:
-    QList<float> m_Amplitudes;
+    QList<qreal> m_Amplitudes;
     QPointer<DataGenerator> mGenerator;
+    bool mLoading {false};
+    int mPendingLoading{0};
 };
 
 struct ChannelDataRow
@@ -50,7 +57,6 @@ class ChannelDataModel : public QAbstractListModel
 {
     Q_OBJECT
     Q_PROPERTY(int range MEMBER mRange NOTIFY rangeChanged)
-
 public:
     using GeneratorList = QList<QPointer<DataGenerator>>;
     using ChannelRowList = QList<ChannelDataRow>;

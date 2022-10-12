@@ -37,7 +37,7 @@ int BarSetModel::rowCount(const QModelIndex & parent) const
     return m_Amplitudes.count();
 }
 
-void BarSetModel::appendDatas(const QList<float>& datasToAppend)
+void BarSetModel::appendDatas(const QList<qreal>& datasToAppend)
 {
     int index = -1;
     emit getPeresistentIndex(this, &index);
@@ -48,16 +48,25 @@ void BarSetModel::appendDatas(const QList<float>& datasToAppend)
     beginInsertRows(QModelIndex(), endPos, endPos + datasToAppend.count() -1);
     m_Amplitudes.append(datasToAppend);
     endInsertRows();
+
+    emit bundleUpdated();
 }
 
-void BarSetModel::setInitialDatas(const QList<float>& datas)
+void BarSetModel::setInitialDatas(const QList<qreal>& datas)
 {
     m_Amplitudes = datas;
 }
 
 void BarSetModel::onDataLoadedArrived(const QVariant& data)
 {
-    appendDatas(data.value<QList<float>>());
+    mPendingLoading--;
+    if(mPendingLoading == 0)
+    {
+        mLoading = false;
+        emit loadingUpdated();
+    }
+
+    appendDatas(data.value<QList<qreal>>());
 }
 
 void BarSetModel::setDataGenerator(QPointer<DataGenerator> gen)
@@ -67,6 +76,17 @@ void BarSetModel::setDataGenerator(QPointer<DataGenerator> gen)
     mGenerator = gen;
 }
 
+void BarSetModel::startLoading(size_t loadSize)
+{
+    if(!mLoading)
+    {
+        mLoading = true;
+        emit loadingUpdated();
+    }
+
+    mPendingLoading++;
+    mGenerator->generate(loadSize);
+}
 ////////////////////////////////////////////////////////////////////////////
 ChannelDataModel::ChannelDataModel(GeneratorList generators, QObject* parent)
     : QAbstractListModel(parent)
@@ -130,7 +150,7 @@ ChannelDataRow ChannelDataModel::generateChannelDataRow(size_t index, QPointer<D
     ChannelDataRow newRow;
 
     newRow.barSetModel = new BarSetModel(this);
-    newRow.barSetModel->setInitialDatas(generator->generate(mRange, true).value<QList<float>>());
+    newRow.barSetModel->setInitialDatas(generator->generate(mRange, true).value<QList<qreal>>());
     newRow.barSetModel->setDataGenerator(generator);
 
     QObject::connect(newRow.barSetModel, &BarSetModel::getPeresistentIndex, this, &ChannelDataModel::getBarSetModelIndex);
@@ -164,7 +184,7 @@ void ChannelDataModel::fetchMoreData(size_t count)
 
     for (auto _one : mRows)
     {
-        _one.barSetModel->getDataGenerator()->generate(loadSize);
+        _one.barSetModel->startLoading(loadSize);
     }
     mRange += loadSize;
     emit rangeChanged();

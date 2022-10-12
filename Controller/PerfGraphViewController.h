@@ -27,6 +27,7 @@ public slots:
 
 private:
     QPointer<ChannelDataModel> mDataModel;
+
     int mDisplayingDataCount{100};
     int mRangeStart{0};
 };

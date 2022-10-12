@@ -45,6 +45,7 @@ FocusScope{
 
         Rectangle {
             id: hintRec
+            color: "transparent"
 
             Text {
                 id: hintText
@@ -62,7 +63,7 @@ FocusScope{
             id: root
 
             implicitHeight: __channelHeight
-            implicitWidth: innerRepeater.implicitWidth > __ViewWidth ? innerRepeater.implicitWidth : __ViewWidth
+            implicitWidth: __ViewWidth
 
             Row{
                 id: innerRow
@@ -120,7 +121,7 @@ FocusScope{
                 Loader{
                     id: loadingHint
 
-                    active: innerRepeater.width - __contentX < __ViewWidth
+                    active: __dataSource.loading
                     width: __ViewWidth - innerRepeater.width + __contentX
                     height: __channelHeight
                     sourceComponent: loadingHintComp
@@ -170,7 +171,6 @@ FocusScope{
                 sourceComponent: barSetComp
             }
         }
-
         //horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
     }
 
@@ -185,14 +185,6 @@ FocusScope{
 
         onWheel: {
             if(wheel.modifiers & Qt.ControlModifier){
-//                console.log(wheel.x, wheel.pixelDelta, wheel.angleDelta)
-//                console.log(
-//                    scrollView.flickableItem.contentX,
-//                    scrollView.flickableItem.contentY,
-//                    scrollView.flickableItem.contentWidth,
-//                    scrollView.flickableItem.contentHeight
-//                    )
-
                 controller.onWheelScaled(wheel.angleDelta)
                 wheel.accepted = true
             }

@@ -77,7 +77,7 @@ void DataGenerator::exit()
 ////////////////////////////////////////////////////////////////////
 QVariant RandomDataGenerator::kernelFunc(size_t number)
 {
-    QList<float> res;
+    QList<qreal> res;
 
     std::normal_distribution<float> distribution(40.0, 10.0);
 
