@@ -6,16 +6,37 @@ Item {
     property var pointSetModel: null
     property real stride: 1.0
     property var lineColor: "red"
+    property int startPos: 0
+    property int numPoints: 0
+
+    function repaint()
+    {
+        if(canvas.available)
+        {
+            var ctx = canvas.getContext("2d");
+            ctx.reset();
+            canvas.requestPaint();
+        }
+    }
+
+    onStartPosChanged: {
+        repaint();
+    }
+
+    onNumPointsChanged: {
+        repaint();
+    }
 
     Canvas {
         id: canvas
 
         anchors.fill: parent
+        antialiasing: true
 
         // Uncomment below lines to use OpenGL hardware accelerated rendering.
         // See Canvas documentation for available options.
-         renderTarget: Canvas.FramebufferObject
-         renderStrategy: Canvas.Threaded
+        //         renderTarget: Canvas.FramebufferObject
+        //         renderStrategy: Canvas.Threaded
 
         function drawBackground(ctx) {
             ctx.save();
@@ -61,7 +82,7 @@ Item {
         {
             ctx.save();
             ctx.strokeStyle = color;
-            ctx.lineWidth = 1
+            ctx.lineWidth = numPoints > 500 ? 1 : 2
 
             ctx.beginPath();
 
@@ -83,15 +104,20 @@ Item {
 
         onPaint: {
             var ctx = canvas.getContext("2d");
-            var numPoints = pointSetModel.length;
             ctx.globalCompositeOperation = "source-over";
 
             //drawBackground(ctx);
 
             var points = [];
-            for (var i = 0; i<numPoints ; i++) {
 
-                points.push({x: i * stride, y: pointSetModel[i]});
+            if(startPos >= pointSetModel.length)
+            {
+                return;
+            }
+
+            for (var i = startPos, j = 0; i< startPos + numPoints ; i++, j++) {
+
+                points.push({x: j * stride, y: pointSetModel[i]});
             }
 
             drawLines(ctx, lineColor, points);

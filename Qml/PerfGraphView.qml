@@ -62,10 +62,12 @@ FocusScope{
         Item{
             id: root
 
-            implicitHeight: __channelHeight
-            implicitWidth: __viewWidth
+            function getBarSetWidth(){
+                return Math.max(0, Math.min(root.width, __barWidth * (__dataSource.bundle.length - controller.rangeStartPos)))
+            }
 
-            readonly property real __barSetWidth: __barWidth * __dataSource.bundle.length
+            readonly property real __barSetWidth: getBarSetWidth()
+            readonly property real __barWidth: root.width / controller.displayingDataCount
 
             RowLayout{
                 id: innerRow
@@ -77,8 +79,9 @@ FocusScope{
 
                     Layout.preferredWidth: __barSetWidth
                     Layout.fillHeight: true
-                    active: !__switch
-                    visible: !__switch
+
+                    active: __dataSource.loaderType === BarSetModel.Rectangle
+                    visible: active
 
                     sourceComponent: Component{
                         id: recViewComp
@@ -90,16 +93,14 @@ FocusScope{
                                 id: innerRepeater
                                 model: __dataSource
 
-                                implicitWidth: __barWidth * count
-                                implicitHeight: __channelHeight
-
+                                anchors.fill: parent
                                 delegate: Rectangle{
                                     id: bar
 
                                     anchors.bottom: parent.bottom
                                     implicitWidth: __barWidth
                                     implicitHeight: model.Amplitude
-                                    color: __barColor
+                                    color: hoverHandler.hovered ? Qt.darker(__barColor, 2.0) : __barColor
 
                                     HoverHandler{
                                         id: hoverHandler
@@ -127,39 +128,55 @@ FocusScope{
 
                     Layout.preferredWidth: __barSetWidth
                     Layout.fillHeight: true
-                    active: __switch
-                    visible: __switch
+
+                    //active: __dataSource.loaderType === BarSetModel.PointSet
+                    visible: __dataSource.loaderType === BarSetModel.PointSet
 
                     sourceComponent: Component{
                         id: ptComp
 
                         PointSetView{
                             id: pointSet
-                            implicitWidth: __barSetWidth
-                            implicitHeight: __channelHeight
 
                             stride: __barWidth
                             pointSetModel: __dataSource.bundle
                             lineColor: __barColor
+                            startPos: controller.rangeStartPos
+                            numPoints: Math.min(controller.displayingDataCount, pointSetModel.length - startPos)
                         }
+                    }
+
+                    onLoaded: {
+                        console.log("point set loaded!")
+                        pointSetViewLoader.item.repaint();
+                    }
+                    onWidthChanged: {
+                        pointSetViewLoader.item.repaint();
+                    }
+                    onHeightChanged: {
+                        pointSetViewLoader.item.repaint();
                     }
                 }
 
                 Loader{
                     id: loadingHint
 
-                    active: __dataSource.loading && __barSetWidth - __contentX < __viewWidth
-                    Layout.preferredWidth: __viewWidth - __barSetWidth + __contentX
+                    active: __dataSource.loading && __barSetWidth < root.width
+                    Layout.preferredWidth: root.width - __barSetWidth
                     Layout.fillHeight: true
+
                     sourceComponent: loadingHintComp
                 }
             }
 
             Rectangle {
                 id: endingLine
+
                 anchors.top: root.bottom
+                anchors.left: root.left
+                anchors.right: root.right
+
                 height: 1
-                width: __contentWidth
                 color: "#d7d7d7"
             }
         }
@@ -189,25 +206,23 @@ FocusScope{
                 }
             }
 
-            contentWidth: controller.graphModel.range * root.width / controller.displayingDataCount
-            contentX:  controller.rangeStartPos * root.width / controller.displayingDataCount
+            contentWidth: root.width
+//            contentX:  controller.rangeStartPos * root.width / controller.displayingDataCount
 
             delegate: Loader{
                 id: barSetLoader
 
                 readonly property var __dataSource: model.BarSetModel
                 readonly property color __barColor: model.Color
-                readonly property int __channelHeight: 100
-                readonly property real __barWidth: root.width / controller.displayingDataCount
-                readonly property real __viewWidth: root.width
-                readonly property real __contentX: graphListView.contentX
-                readonly property real __contentWidth: graphListView.contentWidth
-                readonly property bool __switch: controller.switchDelegate
 
+                anchors.left: parent.left
+                anchors.right: parent.right
+
+                height: 100
                 sourceComponent: barSetComp
             }
         }
-        //horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
+        horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
     }
 
     GraphBorder{

@@ -7,13 +7,22 @@
 #include "../CommonDefines.h"
 
 class DataGenerator;
+
 class BarSetModel: public QAbstractListModel
 {
     Q_OBJECT
-    Q_PROPERTY(QList<qreal> bundle MEMBER m_Amplitudes NOTIFY bundleUpdated)
+    Q_PROPERTY(QList<qreal> bundle MEMBER mAmplitudes NOTIFY bundleUpdated)
     Q_PROPERTY(bool loading MEMBER mLoading NOTIFY loadingUpdated)
+    Q_PROPERTY(LoaderType loaderType MEMBER mLoaderType NOTIFY loaderTypeChanged)
 
 public:
+    enum LoaderType
+    {
+        Rectangle,
+        PointSet
+    };
+    Q_ENUM(LoaderType)
+
     enum class BarSetModelDataRoles : std::uint64_t
     {
         Amplitude = Qt::UserRole + 1,
@@ -37,14 +46,22 @@ signals:
     void getPeresistentIndex(void*, int*);
     void bundleUpdated();
     void loadingUpdated();
+    void loaderTypeChanged();
+
+public slots:
+    void onDisplayingDataCountChanged(size_t count);
+    void onDisplayingPositionChanged(size_t pos);
 
 private slots:
     void onDataLoadedArrived(const QVariant& data);
 
 private:
-    QList<qreal> m_Amplitudes;
+    QList<qreal> mAmplitudes;
     QPointer<DataGenerator> mGenerator;
+
     bool mLoading {false};
+    LoaderType mLoaderType {Rectangle};
+
     int mPendingLoading{0};
 };
 
@@ -57,7 +74,7 @@ struct ChannelDataRow
 class ChannelDataModel : public QAbstractListModel
 {
     Q_OBJECT
-    Q_PROPERTY(int range MEMBER mRange NOTIFY rangeChanged)
+    Q_PROPERTY(int totalRange MEMBER mTotalRange NOTIFY totalRangeChanged)
 public:
     using GeneratorList = QList<QPointer<DataGenerator>>;
     using ChannelRowList = QList<ChannelDataRow>;
@@ -76,21 +93,32 @@ public:
     virtual int rowCount(const QModelIndex & parent = QModelIndex()) const override;
 
     void addChannelDataBefore(size_t index, QPointer<DataGenerator> gen);
-    void fetchMoreData(size_t count);
-
     void move(size_t count, bool forward);
-    size_t getRange() const {return mRange;}
+    void zoomTo(size_t count);
+
+    size_t requestForMoveStride(size_t preferSize, bool forward);
+    size_t requestForZoomStride(size_t count);
+
+    size_t getTotalRange() const {return mTotalRange;}
 
 signals:
-    void rangeChanged();
+    void totalRangeChanged();
+    void displayingDataCountChanged(size_t count);
+    void displayingPositionChanged(size_t pos);
 
 private:
     ChannelDataRow generateChannelDataRow(size_t index, QPointer<DataGenerator> gen);
     void getBarSetModelIndex(void*, int*);
+    void fetchMoreData(size_t count);
+    void updateModel();
 
 private:
     ChannelRowList mRows;
 
-    size_t mRange{ INITIAL_DATA_RANGE };
+    size_t mTotalRange{ INITIAL_TOTAL_DATA_RANGE };
     size_t mBatchSize{ LOADING_BATCH_SIZE };
+
+    // These two parameters should be sync with controller
+    size_t mRangStartPos {0};
+    size_t mDisplayingRange {0};
 };

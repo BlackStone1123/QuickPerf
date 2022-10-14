@@ -44,5 +44,6 @@ void MainWindowController::registerMetaTypes()
 {
     qmlRegisterType<PerfGraphViewController>("com.biren.dataModel", 1, 0, "PerfGraphViewController");
     qmlRegisterType<PointSetItem>("com.biren.dataModel", 1, 0, "PointSetItem");
+    qmlRegisterUncreatableType<BarSetModel>("com.biren.dataModel", 1, 0, "BarSetModel", "Should not be created from qml file");
     qmlRegisterUncreatableType<ChannelDataModel>("com.biren.dataModel", 1, 0, "ChannelDataModel", "Should not be created from qml file");
 }

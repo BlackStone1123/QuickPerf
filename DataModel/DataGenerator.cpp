@@ -7,8 +7,7 @@ static unsigned long rseed = 10;
 DataGenerator::DataGenerator(QObject* parent)
     : QThread(parent)
 {
-    QObject::connect(this, &QThread::finished, this, [this](){
-        this->mGenReq.clear();
+    QObject::connect(this, &QThread::finished, this, [](){
         std::cout << "the worker thread finished" << std::endl;
     });
 }
@@ -24,12 +23,13 @@ QVariant DataGenerator::generate(size_t number, bool immediate)
 
     if(!isRunning())
     {
-        mGenReq << number;
+        mGenReq.push_back(number);
         start(LowPriority);
     }
     else {
         QMutexLocker locker(&mMutex);
-        mGenReq << number;
+        mGenReq.push_back(number);
+        mCondition.wakeOne();
     }
 
     return {};
@@ -37,29 +37,34 @@ QVariant DataGenerator::generate(size_t number, bool immediate)
 
 void DataGenerator::run()
 {
-    size_t batchExecuted = 0;
-    size_t totalbatchCount = 0;
     size_t currentBatchNum = 0;
     bool taskAbort = false;
 
     while(true)
     {
         mMutex.lock();
-        totalbatchCount = this->mGenReq.count();
-        currentBatchNum = batchExecuted == totalbatchCount ? 0 : this->mGenReq.at(batchExecuted);
+        if(this->mGenReq.count() == 0)
+        {
+            mCondition.wait(&mMutex);
+        }
         taskAbort = this->mAbort;
+
+        if(!taskAbort && mGenReq.count() > 0)
+        {
+            currentBatchNum = this->mGenReq.front();
+            this->mGenReq.pop_front();
+        }
         mMutex.unlock();
 
-        if(totalbatchCount == batchExecuted || taskAbort)
+        if(taskAbort)
         {
             break;
         }
         else
         {
             QVariant res = kernelFunc(currentBatchNum);
-            sleep(2);
+            //sleep(2);
             emit dataLoadFinished(res);
-            batchExecuted++;
         }
     }
 }
@@ -68,7 +73,7 @@ void DataGenerator::exit()
 {
     mMutex.lock();
     mAbort = true;
-    //mCondition.wakeOne();
+    mCondition.wakeOne();
     mMutex.unlock();
 
     wait();

@@ -19,8 +19,7 @@ PerfGraphViewController::PerfGraphViewController(QObject* parent)
         QPointer<DataGenerator> gen = new RandomDataGenerator(this);
         mDataModel->addChannelDataBefore(index, gen);
     });
-
-    QObject::connect(this, &PerfGraphViewController::fetchMore, mDataModel, &ChannelDataModel::fetchMoreData);
+    mDataModel->zoomTo(mDisplayingDataCount);
 }
 
 PerfGraphViewController::~PerfGraphViewController()
@@ -32,71 +31,49 @@ void PerfGraphViewController::onWheelScaled(const QPointF& point)
 {
     int scaledNumber = mDisplayingDataCount * (point.y() > 0 ? 0.8 : 1.2);
     scaledNumber = std::max(scaledNumber, MINIMUM_DISPLAYING_DATA_COUNT);
+    scaledNumber = mDataModel->requestForZoomStride(scaledNumber);
 
     if(mDisplayingDataCount != scaledNumber)
     {
         mDisplayingDataCount = scaledNumber;
-
         emit displayingDataCountChanged();
 
-        if(mDisplayingDataCount > MAXIMUM_DISPLAYING_DATA_COUNT && !mSwitchDelegate)
-        {
-            mSwitchDelegate = true;
-            emit switchDelegateChanged();
-        }
-
-        if(mDisplayingDataCount < MAXIMUM_DISPLAYING_DATA_COUNT && mSwitchDelegate)
-        {
-            mSwitchDelegate = false;
-            emit switchDelegateChanged();
-        }
-
-        int diff = (size_t)mDisplayingDataCount + mRangeStart - mDataModel->getRange();
-        if(diff>0)
-        {
-            std::cout << "Out of boundary, more data is required:"<< diff << std::endl;
-            emit fetchMore(diff);
-        }
+        mDataModel->zoomTo(mDisplayingDataCount);
+    }
+    else
+    {
+        std::cout<< "can not zoom more data" << std::endl;
     }
 }
 
 void PerfGraphViewController::onLeftKeyPressed()
 {
-    int dataStride = mDisplayingDataCount / 5;
+    size_t dataStride = mDataModel->requestForMoveStride(mDisplayingDataCount / 5, false);
 
-    if(mRangeStart <= 0)
+    if(dataStride == 0)
     {
         std::cout << "reach to the left end, can not scroll any more!" << std::endl;
         return;
     }
 
-    if(mRangeStart-dataStride < 0)
-    {
-        dataStride = mRangeStart;
-    }
     mRangeStart-=dataStride;
-
-    //mDataModel->move(dataStride, false);
     emit rangeStartPosChanged();
+
+    mDataModel->move(dataStride, false);
 }
 
 void PerfGraphViewController::onRightKeyPressed()
 {
-    size_t dataStride = mDisplayingDataCount / 5;
-    size_t rangeEnd = mDisplayingDataCount + mRangeStart;
+    size_t dataStride = mDataModel->requestForMoveStride(mDisplayingDataCount / 5, true);
 
-    if(rangeEnd >= mDataModel->getRange())
+    if(dataStride == 0)
     {
         std::cout << "reach to the right end, can not scroll any more!" << std::endl;
         return;
     }
 
-    if(mDataModel->getRange()-rangeEnd < dataStride)
-    {
-        dataStride = mDataModel->getRange() - rangeEnd;
-    }
     mRangeStart += dataStride;
-
-    //mDataModel->move(dataStride, true);
     emit rangeStartPosChanged();
+
+    mDataModel->move(dataStride, true);
 }
