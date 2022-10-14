@@ -79,6 +79,7 @@ FocusScope{
 
                     Layout.preferredWidth: __barSetWidth
                     Layout.fillHeight: true
+                    Layout.leftMargin: -(controller.rangeStartPos - __dataSource.barSetModel.baseOffset) * __barWidth
 
                     active: __dataSource.loaderType === BarSetModel.Rectangle
                     visible: active
@@ -91,7 +92,7 @@ FocusScope{
 
                             Repeater{
                                 id: innerRepeater
-                                model: __dataSource
+                                model: __dataSource.barSetModel
 
                                 anchors.fill: parent
                                 delegate: Rectangle{
@@ -129,9 +130,7 @@ FocusScope{
                     Layout.preferredWidth: __barSetWidth
                     Layout.fillHeight: true
 
-                    //active: __dataSource.loaderType === BarSetModel.PointSet
                     visible: __dataSource.loaderType === BarSetModel.PointSet
-
                     sourceComponent: Component{
                         id: ptComp
 
@@ -207,12 +206,10 @@ FocusScope{
             }
 
             contentWidth: root.width
-//            contentX:  controller.rangeStartPos * root.width / controller.displayingDataCount
-
             delegate: Loader{
                 id: barSetLoader
 
-                readonly property var __dataSource: model.BarSetModel
+                readonly property var __dataSource: model.PointSetModel
                 readonly property color __barColor: model.Color
 
                 anchors.left: parent.left
@@ -235,7 +232,7 @@ FocusScope{
         anchors.fill: parent
 
         onWheel: {
-            if(wheel.modifiers & Qt.ControlModifier){
+            if(root.activeFocus && (wheel.modifiers & Qt.ControlModifier)){
                 controller.onWheelScaled(wheel.angleDelta)
                 wheel.accepted = true
             }

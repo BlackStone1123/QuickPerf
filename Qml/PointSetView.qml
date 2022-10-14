@@ -106,7 +106,7 @@ Item {
             var ctx = canvas.getContext("2d");
             ctx.globalCompositeOperation = "source-over";
 
-            //drawBackground(ctx);
+            // drawBackground(ctx);
 
             var points = [];
 
