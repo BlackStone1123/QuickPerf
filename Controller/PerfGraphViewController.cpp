@@ -4,6 +4,7 @@
 
 #include "../DataModel/ChannelDataModel.h"
 #include "../DataModel/DataGenerator.h"
+#include "SingleChannelController.h"
 
 PerfGraphViewController::PerfGraphViewController(QObject* parent)
     :QObject(parent)
@@ -19,7 +20,6 @@ PerfGraphViewController::PerfGraphViewController(QObject* parent)
         QPointer<DataGenerator> gen = new RandomDataGenerator(this);
         mDataModel->addChannelDataBefore(index, gen);
     });
-    mDataModel->zoomTo(mDisplayingDataCount);
 }
 
 PerfGraphViewController::~PerfGraphViewController()
@@ -27,18 +27,27 @@ PerfGraphViewController::~PerfGraphViewController()
     std::cout << "PerfGraphViewController deletion" << std::endl;
 }
 
+void PerfGraphViewController::registerSingleChannelController(SingleChannelController* controller)
+{
+    controller->loadInitialDatas();
+    mControllerList.push_back(controller);
+}
+
 void PerfGraphViewController::onWheelScaled(const QPointF& point)
 {
-    int scaledNumber = mDisplayingDataCount * (point.y() > 0 ? 0.8 : 1.2);
+    auto singleController = mControllerList.front();
+    int currentDisplayingCount = singleController->getDisplayingDataCount();
+
+    int scaledNumber =  currentDisplayingCount * (point.y() > 0 ? 0.8 : 1.2);
     scaledNumber = std::max(scaledNumber, MINIMUM_DISPLAYING_DATA_COUNT);
-    scaledNumber = mDataModel->requestForZoomStride(scaledNumber);
+    scaledNumber = singleController->requestForZoomStride(scaledNumber);
 
-    if(mDisplayingDataCount != scaledNumber)
+    if(currentDisplayingCount != scaledNumber)
     {
-        mDisplayingDataCount = scaledNumber;
-        emit displayingDataCountChanged();
-
-        mDataModel->zoomTo(mDisplayingDataCount);
+        for(auto controller: mControllerList)
+        {
+            controller->zoomTo(scaledNumber);
+        }
     }
     else
     {
@@ -48,7 +57,10 @@ void PerfGraphViewController::onWheelScaled(const QPointF& point)
 
 void PerfGraphViewController::onLeftKeyPressed()
 {
-    size_t dataStride = mDataModel->requestForMoveStride(mDisplayingDataCount / 5, false);
+    auto singleController = mControllerList.front();
+    int currentDisplayingCount = singleController->getDisplayingDataCount();
+
+    size_t dataStride = singleController->requestForMoveStride(currentDisplayingCount, false);
 
     if(dataStride == 0)
     {
@@ -56,15 +68,18 @@ void PerfGraphViewController::onLeftKeyPressed()
         return;
     }
 
-    mRangeStart-=dataStride;
-    emit rangeStartPosChanged();
-
-    mDataModel->move(dataStride, false);
+    for (auto controller: mControllerList)
+    {
+        controller->move(dataStride, false);
+    }
 }
 
 void PerfGraphViewController::onRightKeyPressed()
 {
-    size_t dataStride = mDataModel->requestForMoveStride(mDisplayingDataCount / 5, true);
+    auto singleController = mControllerList.front();
+    int currentDisplayingCount = singleController->getDisplayingDataCount();
+
+    size_t dataStride = singleController->requestForMoveStride(currentDisplayingCount, true);
 
     if(dataStride == 0)
     {
@@ -72,8 +87,8 @@ void PerfGraphViewController::onRightKeyPressed()
         return;
     }
 
-    mRangeStart += dataStride;
-    emit rangeStartPosChanged();
-
-    mDataModel->move(dataStride, true);
+    for (auto controller: mControllerList)
+    {
+        controller->move(dataStride, true);
+    }
 }

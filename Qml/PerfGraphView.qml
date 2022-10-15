@@ -9,7 +9,7 @@ FocusScope{
     property int currentChannelIndex: graphListView.currentIndex
 
     PerfGraphViewController{
-        id: controller
+        id: graphController
     }
 
     Component{
@@ -63,11 +63,20 @@ FocusScope{
             id: root
 
             function getBarSetWidth(){
-                return Math.max(0, Math.min(root.width, __barWidth * (__dataSource.bundle.length - controller.rangeStartPos)))
+                return Math.max(0, Math.min(root.width, __barWidth * (channelController.bundle.length - channelController.rangeStartPos)))
             }
 
             readonly property real __barSetWidth: getBarSetWidth()
-            readonly property real __barWidth: root.width / controller.displayingDataCount
+            readonly property real __barWidth: root.width / channelController.displayingDataCount
+
+            SingleChannelController{
+                id: channelController
+
+                dataGenerator: __dataGenerator
+                Component.onCompleted: {
+                    graphController.registerSingleChannelController(channelController);
+                }
+            }
 
             RowLayout{
                 id: innerRow
@@ -79,9 +88,9 @@ FocusScope{
 
                     Layout.preferredWidth: __barSetWidth
                     Layout.fillHeight: true
-                    Layout.leftMargin: -(controller.rangeStartPos - __dataSource.barSetModel.baseOffset) * __barWidth
+                    Layout.leftMargin: __barWidth * (channelController.rectBaseOffset - channelController.rangeStartPos)
 
-                    active: __dataSource.loaderType === BarSetModel.Rectangle
+                    active: channelController.loaderType === SingleChannelController.Rectangle
                     visible: active
 
                     sourceComponent: Component{
@@ -92,7 +101,7 @@ FocusScope{
 
                             Repeater{
                                 id: innerRepeater
-                                model: __dataSource.barSetModel
+                                model: channelController.barSetModel
 
                                 anchors.fill: parent
                                 delegate: Rectangle{
@@ -130,7 +139,7 @@ FocusScope{
                     Layout.preferredWidth: __barSetWidth
                     Layout.fillHeight: true
 
-                    visible: __dataSource.loaderType === BarSetModel.PointSet
+                    visible: channelController.loaderType === SingleChannelController.PointSet
                     sourceComponent: Component{
                         id: ptComp
 
@@ -138,10 +147,10 @@ FocusScope{
                             id: pointSet
 
                             stride: __barWidth
-                            pointSetModel: __dataSource.bundle
+                            pointSetModel: channelController.bundle
                             lineColor: __barColor
-                            startPos: controller.rangeStartPos
-                            numPoints: Math.min(controller.displayingDataCount, pointSetModel.length - startPos)
+                            startPos: channelController.rangeStartPos
+                            numPoints: Math.min(channelController.displayingDataCount, pointSetModel.length - startPos)
                         }
                     }
 
@@ -160,7 +169,7 @@ FocusScope{
                 Loader{
                     id: loadingHint
 
-                    active: __dataSource.loading && __barSetWidth < root.width
+                    active: channelController.loading && __barSetWidth < root.width
                     Layout.preferredWidth: root.width - __barSetWidth
                     Layout.fillHeight: true
 
@@ -191,7 +200,7 @@ FocusScope{
             id: graphListView
 
             focus: true
-            model: controller.graphModel
+            model: graphController.graphModel
 
             add: Transition{
                 NumberAnimation { properties: "opacity"; from: 0; to: 1.0; duration: 200}
@@ -209,7 +218,7 @@ FocusScope{
             delegate: Loader{
                 id: barSetLoader
 
-                readonly property var __dataSource: model.PointSetModel
+                readonly property var __dataGenerator: model.Generator
                 readonly property color __barColor: model.Color
 
                 anchors.left: parent.left
@@ -233,7 +242,7 @@ FocusScope{
 
         onWheel: {
             if(root.activeFocus && (wheel.modifiers & Qt.ControlModifier)){
-                controller.onWheelScaled(wheel.angleDelta)
+                graphController.onWheelScaled(wheel.angleDelta)
                 wheel.accepted = true
             }
             else
@@ -248,11 +257,11 @@ FocusScope{
     Keys.onPressed: {
         if (event.key === Qt.Key_A) {
             console.log("move left");
-            controller.onLeftKeyPressed()
+            graphController.onLeftKeyPressed()
         }
         else if(event.key === Qt.Key_D){
             console.log("move right");
-            controller.onRightKeyPressed()
+            graphController.onRightKeyPressed()
         }
         else if(event.key === Qt.Key_W){
             graphListView.decrementCurrentIndex()

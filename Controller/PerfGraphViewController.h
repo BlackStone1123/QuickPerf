@@ -2,22 +2,23 @@
 #include "../CommonDefines.h"
 
 class ChannelDataModel;
+class SingleChannelController;
 class PerfGraphViewController : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(ChannelDataModel* graphModel MEMBER mDataModel NOTIFY modelChanged)
-    Q_PROPERTY(int displayingDataCount MEMBER mDisplayingDataCount NOTIFY displayingDataCountChanged)
-    Q_PROPERTY(int rangeStartPos MEMBER mRangeStart NOTIFY rangeStartPosChanged)
 
 public:
+    using ControllerList = QList<QPointer<SingleChannelController>>;
+
     PerfGraphViewController(QObject* parent = nullptr);
     virtual ~PerfGraphViewController();
+
+    Q_INVOKABLE void registerSingleChannelController(SingleChannelController*);
 
 signals:
     void modelChanged();
     void insertRowBefore(int index);
-    void rangeStartPosChanged();
-    void displayingDataCountChanged();
 
 public slots:
     void onWheelScaled(const QPointF&);
@@ -26,7 +27,5 @@ public slots:
 
 private:
     QPointer<ChannelDataModel> mDataModel;
-
-    int mDisplayingDataCount{INITIAL_DISPLAYING_DATA_RANGE};
-    int mRangeStart{0};
+    ControllerList mControllerList;
 };

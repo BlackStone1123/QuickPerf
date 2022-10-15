@@ -31,12 +31,12 @@ Item {
         id: canvas
 
         anchors.fill: parent
-        antialiasing: true
+        //antialiasing: true
 
         // Uncomment below lines to use OpenGL hardware accelerated rendering.
         // See Canvas documentation for available options.
-        //         renderTarget: Canvas.FramebufferObject
-        //         renderStrategy: Canvas.Threaded
+//                 renderTarget: Canvas.FramebufferObject
+//                 renderStrategy: Canvas.Threaded
 
         function drawBackground(ctx) {
             ctx.save();
