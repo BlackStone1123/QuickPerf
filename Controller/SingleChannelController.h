@@ -56,6 +56,7 @@ private:
     void appendDatas(const QList<qreal>&);
     void fetchMoreData(size_t count);
     void updateModel();
+    void rebase();
 
 private:
     QList<qreal> mAmplitudes;

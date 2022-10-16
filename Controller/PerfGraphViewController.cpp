@@ -38,7 +38,8 @@ void PerfGraphViewController::onWheelScaled(const QPointF& point)
     auto singleController = mControllerList.front();
     int currentDisplayingCount = singleController->getDisplayingDataCount();
 
-    int scaledNumber =  currentDisplayingCount * (point.y() > 0 ? 0.8 : 1.2);
+    bool zoomIn = point.y() > 0;
+    int scaledNumber =  currentDisplayingCount * (zoomIn ? 0.8 : 1.2);
     scaledNumber = std::max(scaledNumber, MINIMUM_DISPLAYING_DATA_COUNT);
     scaledNumber = singleController->requestForZoomStride(scaledNumber);
 
@@ -60,7 +61,7 @@ void PerfGraphViewController::onLeftKeyPressed()
     auto singleController = mControllerList.front();
     int currentDisplayingCount = singleController->getDisplayingDataCount();
 
-    size_t dataStride = singleController->requestForMoveStride(currentDisplayingCount, false);
+    size_t dataStride = singleController->requestForMoveStride(currentDisplayingCount / 5, false);
 
     if(dataStride == 0)
     {
@@ -79,7 +80,7 @@ void PerfGraphViewController::onRightKeyPressed()
     auto singleController = mControllerList.front();
     int currentDisplayingCount = singleController->getDisplayingDataCount();
 
-    size_t dataStride = singleController->requestForMoveStride(currentDisplayingCount, true);
+    size_t dataStride = singleController->requestForMoveStride(currentDisplayingCount / 5, true);
 
     if(dataStride == 0)
     {

@@ -63,7 +63,7 @@ void DataGenerator::run()
         else
         {
             QVariant res = kernelFunc(currentBatchNum);
-            sleep(2);
+            //sleep(2);
             emit dataLoadFinished(res);
         }
     }

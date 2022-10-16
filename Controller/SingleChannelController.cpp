@@ -12,7 +12,7 @@ SingleChannelController::SingleChannelController(QObject* parent)
 
 SingleChannelController::~SingleChannelController()
 {
-    std::cout << "BarSetModel deletion" << std::endl;
+    std::cout << "SingleChannelController deletion" << std::endl;
 }
 
 void SingleChannelController::appendDatas(const QList<qreal>& datasToAppend)
@@ -32,6 +32,9 @@ void SingleChannelController::appendDatas(const QList<qreal>& datasToAppend)
 
 void SingleChannelController::loadInitialDatas()
 {
+    // Bind the new row with data generator
+    QObject::connect(mGenerator, &DataGenerator::dataLoadFinished, this, &SingleChannelController::onDataLoadedArrived);
+
     mAmplitudes = mGenerator->generate(mTotalRange ,true).value<QList<qreal>>();
     mLoaderType = mDisplayingDataCount > MAXIMUM_RECTANGLE_DISPLAYING_DATA_COUNT ? PointSet : Rectangle;
     mBarSetModel->setBaseOffset(mRangeStartPos);
@@ -39,9 +42,10 @@ void SingleChannelController::loadInitialDatas()
 
 void SingleChannelController::setDataGenerator(DataGenerator* gen)
 {
-    // Bind the new row with data generator
-    QObject::connect(gen, &DataGenerator::dataLoadFinished, this, &SingleChannelController::onDataLoadedArrived);
-    mGenerator = gen;
+    if(mGenerator == nullptr)
+    {
+        mGenerator = gen;
+    }
 }
 
 void SingleChannelController::startLoading(size_t loadSize)
@@ -61,23 +65,13 @@ void SingleChannelController::move(size_t count, bool forward)
     if(count > 0)
     {
         mRangeStartPos = mRangeStartPos + (forward ? count : -count);
+        std::cout << "range start position:"<< mRangeStartPos << " displaying data count:" << mDisplayingDataCount<< " total range:" << mTotalRange << std::endl;
+
         emit rangeStartPosChanged();
     }
 
-    if(mLoaderType == Rectangle)
-    {
-        bool rebase = forward ? (mDisplayingDataCount > MAXIMUM_RECTANGLE_DATA_COUNT - (mRangeStartPos - mRectViewBaseOffset))
-                              : mRangeStartPos < mRectViewBaseOffset;
-
-        if(rebase)
-        {
-            mRectViewBaseOffset = mRangeStartPos;
-            emit rectBaseOffsetChanged();
-
-            mBarSetModel->setBaseOffset(mRectViewBaseOffset);
-        }
-    }
     updateModel();
+    rebase();
 }
 
 void SingleChannelController::zoomTo(size_t count)
@@ -85,6 +79,8 @@ void SingleChannelController::zoomTo(size_t count)
     if(mDisplayingDataCount != count)
     {
         mDisplayingDataCount = count;
+        std::cout << "range start position:"<< mRangeStartPos << " displaying data count:" << mDisplayingDataCount<< " total range:" << mTotalRange << std::endl;
+
         emit displayingDataCountChanged();
     }
 
@@ -92,18 +88,11 @@ void SingleChannelController::zoomTo(size_t count)
     if(type != mLoaderType)
     {
         mLoaderType = type;
-
-        if(mLoaderType == Rectangle)
-        {
-            mRectViewBaseOffset = mRangeStartPos;
-            emit rectBaseOffsetChanged();
-
-            mBarSetModel->setBaseOffset(mRangeStartPos);
-        }
         emit loaderTypeChanged();
     }
 
     updateModel();
+    rebase();
 }
 
 size_t SingleChannelController::requestForMoveStride(size_t preferSize, bool forward)
@@ -138,6 +127,24 @@ void SingleChannelController::updateModel()
     {
         std::cout << "Out of boundary, more data is required:"<< diff << std::endl;
         fetchMoreData(diff);
+    }
+}
+
+void SingleChannelController::rebase()
+{
+    if(mLoaderType == Rectangle)
+    {
+        bool rebase = (MAXIMUM_RECTANGLE_DATA_COUNT < (mRangeStartPos - mRectViewBaseOffset)) ||
+                (mDisplayingDataCount > MAXIMUM_RECTANGLE_DATA_COUNT - (mRangeStartPos - mRectViewBaseOffset))||
+                mRangeStartPos < mRectViewBaseOffset;
+
+        if(rebase)
+        {
+            mRectViewBaseOffset = mRangeStartPos;
+            emit rectBaseOffsetChanged();
+
+            mBarSetModel->setBaseOffset(mRectViewBaseOffset);
+        }
     }
 }
 

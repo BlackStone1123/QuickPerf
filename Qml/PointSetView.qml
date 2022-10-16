@@ -82,6 +82,7 @@ Item {
         {
             ctx.save();
             ctx.strokeStyle = color;
+            ctx.fillStyle = color;
             ctx.lineWidth = numPoints > 500 ? 1 : 2
 
             ctx.beginPath();
@@ -92,13 +93,14 @@ Item {
                 var x = points[i].x;
                 var y = points[i].y;
 
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
+//                if (i === 0) {
+//                    ctx.moveTo(x, y);
+//                } else {
+//                    ctx.lineTo(x, y);
+//                }
+                ctx.fillRect(x, y, stride, root.height - y)
             }
-            ctx.stroke();
+            //ctx.stroke();
             ctx.restore();
         }
 
@@ -117,7 +119,7 @@ Item {
 
             for (var i = startPos, j = 0; i< startPos + numPoints ; i++, j++) {
 
-                points.push({x: j * stride, y: pointSetModel[i]});
+                points.push({x: j * stride, y: root.height - pointSetModel[i]});
             }
 
             drawLines(ctx, lineColor, points);
