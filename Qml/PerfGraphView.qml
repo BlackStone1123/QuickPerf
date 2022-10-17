@@ -1,6 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.0
 import QtQuick.Controls 1.0
+import QtGraphicalEffects 1.12
 import com.biren.dataModel 1.0
 
 FocusScope{
@@ -13,64 +14,99 @@ FocusScope{
         id: graphController
     }
 
-    ScrollView{
-        id: scrollView
+    Item{
+        id: panelLayer
 
         anchors.fill: parent
-        focus: true
 
-        ListView{
-            id: graphListView
+        Repeater{
+            id: verSplitLineRepeater
+
+            model: 20
+            delegate: Rectangle{
+                id: splitLine
+
+                x: index * (root.width) / 20
+                y: 0
+                width: 1
+                height: root.height
+                color: "#d7d7d7"
+            }
+        }
+    }
+
+    ColumnLayout{
+        id: verLayout
+
+        anchors.fill: parent
+
+        AxisItem{
+            id: axisItem
+
+            Layout.fillWidth: true
+        }
+
+        ScrollView{
+            id: scrollView
+
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
             focus: true
-            model: graphController.graphModel
 
-            add: Transition{
-                NumberAnimation { properties: "opacity"; from: 0; to: 1.0; duration: 200}
-            }
+            ListView{
+                id: graphListView
 
-            highlight: Rectangle{
-                color: "lightsteelblue"
-                anchors{
-                    left: parent.left
-                    right: parent.right
-                }
-            }
+                focus: true
+                model: graphController.graphModel
 
-            contentWidth: root.width
-            delegate: Loader{
-                id: barSetLoader
-
-                anchors.left: parent.left
-                anchors.right: parent.right
-
-                height: 100
-                source: "BarSetChannel.qml"
-
-                Binding {
-                  target: barSetLoader.item
-                  property: "__dataGenerator"
-                  value: model.Generator
-                  when: barSetLoader.status === Loader.Ready
+                add: Transition{
+                    NumberAnimation { properties: "opacity"; from: 0; to: 1.0; duration: 200}
                 }
 
-                Binding {
-                  target: barSetLoader.item
-                  property: "__barColor"
-                  value: model.Color
-                  when: barSetLoader.status === Loader.Ready
+                highlight: Rectangle{
+                    color: "#80add8e6"
+                    anchors{
+                        left: parent.left
+                        right: parent.right
+                    }
                 }
 
-                onLoaded: {
-                    graphController.registerSingleChannelController(item.controller);
-                    if(firshChannelController === null)
-                    {
-                        firshChannelController = item.controller;
+                contentWidth: root.width
+                delegate: Loader{
+                    id: barSetLoader
+
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+
+                    height: 100
+                    source: "BarSetChannel.qml"
+
+                    Binding {
+                        target: barSetLoader.item
+                        property: "__dataGenerator"
+                        value: model.Generator
+                        when: barSetLoader.status === Loader.Ready
+                    }
+
+                    Binding {
+                        target: barSetLoader.item
+                        property: "__barColor"
+                        value: model.Color
+                        when: barSetLoader.status === Loader.Ready
+                    }
+
+                    onLoaded: {
+                        graphController.registerSingleChannelController(item.controller);
+                        if(firshChannelController === null)
+                        {
+                            firshChannelController = item.controller;
+                        }
                     }
                 }
             }
+            horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
         }
-        horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
     }
 
     GraphBorder{

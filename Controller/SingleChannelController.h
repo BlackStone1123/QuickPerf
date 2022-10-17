@@ -33,11 +33,11 @@ public:
     DataGenerator* getDataGenerator() const { return mGenerator; }
     void setDataGenerator(DataGenerator* gen);
 
-    void move(size_t count, bool forward);
+    void move(int count, bool forward);
     void zoomTo(size_t count);
 
-    size_t requestForMoveStride(size_t preferSize, bool forward);
-    size_t requestForZoomStride(size_t count);
+    int requestForMoveStride(size_t preferSize, bool forward);
+    int requestForZoomStride(size_t count);
     size_t getTotalRange() const {return mTotalRange;}
     size_t getDisplayingDataCount() const {return mDisplayingDataCount;}
 

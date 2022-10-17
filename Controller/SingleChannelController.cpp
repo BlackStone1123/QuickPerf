@@ -60,7 +60,7 @@ void SingleChannelController::startLoading(size_t loadSize)
     mGenerator->generate(loadSize);
 }
 
-void SingleChannelController::move(size_t count, bool forward)
+void SingleChannelController::move(int count, bool forward)
 {
     if(count > 0)
     {
@@ -79,7 +79,7 @@ void SingleChannelController::zoomTo(size_t count)
     if(mDisplayingDataCount != count)
     {
         mDisplayingDataCount = count;
-        std::cout << "range start position:"<< mRangeStartPos << " displaying data count:" << mDisplayingDataCount<< " total range:" << mTotalRange << std::endl;
+        //std::cout << "range start position:"<< mRangeStartPos << " displaying data count:" << mDisplayingDataCount<< " total range:" << mTotalRange << std::endl;
 
         emit displayingDataCountChanged();
     }
@@ -95,7 +95,7 @@ void SingleChannelController::zoomTo(size_t count)
     rebase();
 }
 
-size_t SingleChannelController::requestForMoveStride(size_t preferSize, bool forward)
+int SingleChannelController::requestForMoveStride(size_t preferSize, bool forward)
 {
     size_t backendSize = getDataGenerator()->getBackEndDataSize();
     size_t residual = forward ? (backendSize - mRangeStartPos - mDisplayingDataCount) : mRangeStartPos;
@@ -103,7 +103,7 @@ size_t SingleChannelController::requestForMoveStride(size_t preferSize, bool for
     return std::min(residual, preferSize);
 }
 
-size_t SingleChannelController::requestForZoomStride(size_t count)
+int SingleChannelController::requestForZoomStride(size_t count)
 {
     size_t backendSize = getDataGenerator()->getBackEndDataSize();
     return std::min(count, backendSize - mRangeStartPos);
@@ -140,6 +140,8 @@ void SingleChannelController::rebase()
 
         if(rebase)
         {
+            std::cout << "Rebase rectangle model offset:"<< mRangeStartPos << std::endl;
+
             mRectViewBaseOffset = mRangeStartPos;
             emit rectBaseOffsetChanged();
 

@@ -66,103 +66,107 @@ Item{
         dataGenerator: __dataGenerator
     }
 
-    RowLayout{
-        id: innerRow
+    Loader{
+        id: rectangleViewLoader
 
-        anchors.fill: parent
+        width: __barSetWidth
+        anchors{
+            top: parent.top
+            bottom: parent.bottom
+            left: parent.left
+            leftMargin: __barWidth * (channelController.rectBaseOffset - channelController.rangeStartPos)
+        }
 
-        Loader{
-            id: rectangleViewLoader
+        active: channelController.loaderType === SingleChannelController.Rectangle
+        visible: active
 
-            Layout.preferredWidth: __barSetWidth
-            Layout.fillHeight: true
-            Layout.leftMargin: __barWidth * (channelController.rectBaseOffset - channelController.rangeStartPos)
+        sourceComponent: Component{
+            id: recViewComp
 
-            active: channelController.loaderType === SingleChannelController.Rectangle
-            visible: active
+            Row{
+                id: repeaterRow
 
-            sourceComponent: Component{
-                id: recViewComp
+                Repeater{
+                    id: innerRepeater
+                    model: channelController.barSetModel
 
-                Row{
-                    id: repeaterRow
+                    anchors.fill: parent
+                    delegate: Rectangle{
+                        id: bar
 
-                    Repeater{
-                        id: innerRepeater
-                        model: channelController.barSetModel
+                        anchors.bottom: parent.bottom
+                        implicitWidth: __barWidth
+                        implicitHeight: model.Amplitude
+                        color: hoverHandler.hovered ? Qt.darker(__barColor, 2.0) : __barColor
 
-                        anchors.fill: parent
-                        delegate: Rectangle{
-                            id: bar
+                        HoverHandler{
+                            id: hoverHandler
+                        }
 
-                            anchors.bottom: parent.bottom
-                            implicitWidth: __barWidth
-                            implicitHeight: model.Amplitude
-                            color: hoverHandler.hovered ? Qt.darker(__barColor, 2.0) : __barColor
+                        Loader{
+                            id: indicatorLoader
 
-                            HoverHandler{
-                                id: hoverHandler
-                            }
+                            property string indicatorText: bar.height
 
-                            Loader{
-                                id: indicatorLoader
+                            anchors.bottom: bar.top
+                            width: bar.width
+                            active: hoverHandler.hovered
+                            sourceComponent: indicator
 
-                                property string indicatorText: bar.height
-
-                                anchors.bottom: bar.top
-                                width: bar.width
-                                active: hoverHandler.hovered
-                                sourceComponent: indicator
-
-                            }
                         }
                     }
                 }
             }
         }
 
-        Loader{
-            id: pointSetViewLoader
+        onLoaded: {
+            console.log("rectangle view loaded")
+        }
+    }
 
-            Layout.preferredWidth: __barSetWidth
-            Layout.fillHeight: true
+    Loader{
+        id: pointSetViewLoader
 
-            visible: channelController.loaderType === SingleChannelController.PointSet
-            sourceComponent: Component{
-                id: ptComp
+        width: __barSetWidth
+        anchors{
+            top: parent.top
+            bottom: parent.bottom
+            left: parent.left
+        }
 
-                PointSetView{
-                    id: pointSet
+        visible: channelController.loaderType === SingleChannelController.PointSet
+        sourceComponent: Component{
+            id: ptComp
 
-                    stride: __barWidth
-                    pointSetModel: channelController.bundle
-                    lineColor: __barColor
-                    startPos: channelController.rangeStartPos
-                    numPoints: Math.min(channelController.displayingDataCount, pointSetModel.length - startPos)
-                }
-            }
+            PointSetView{
+                id: pointSet
 
-            onLoaded: {
-                console.log("point set loaded!")
-                pointSetViewLoader.item.repaint();
-            }
-            onWidthChanged: {
-                pointSetViewLoader.item.repaint();
-            }
-            onHeightChanged: {
-                pointSetViewLoader.item.repaint();
+                stride: __barWidth
+                pointSetModel: channelController.bundle
+                lineColor: __barColor
+                startPos: channelController.rangeStartPos
+                numPoints: Math.min(channelController.displayingDataCount, pointSetModel.length - startPos)
             }
         }
 
-        Loader{
-            id: loadingHint
-
-            active: channelController.loading && __barSetWidth < root.width
-            Layout.preferredWidth: root.width - __barSetWidth
-            Layout.fillHeight: true
-
-            sourceComponent: loadingHintComp
+        onLoaded: {
+            console.log("point set loaded!")
+            pointSetViewLoader.item.repaint();
         }
+    }
+
+    Loader{
+        id: loadingHint
+
+        active: channelController.loading && __barSetWidth < root.width
+
+        x: __barSetWidth
+        width: root.width - __barSetWidth
+
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+
+        sourceComponent: loadingHintComp
     }
 
     Rectangle {
