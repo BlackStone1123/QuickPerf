@@ -2,11 +2,13 @@
 #include "../CommonDefines.h"
 
 class ChannelDataModel;
+class TreeModel;
 class SingleChannelController;
+class DataGenerator;
 class PerfGraphViewController : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(ChannelDataModel* graphModel MEMBER mDataModel NOTIFY modelChanged)
+    Q_PROPERTY(TreeModel* graphModel MEMBER mDataModel NOTIFY modelChanged)
 
 public:
     using ControllerList = QList<QPointer<SingleChannelController>>;
@@ -15,6 +17,7 @@ public:
     virtual ~PerfGraphViewController();
 
     Q_INVOKABLE void registerSingleChannelController(SingleChannelController*);
+    Q_INVOKABLE DataGenerator* getDataGenerator(QString key);
 
 signals:
     void modelChanged();
@@ -26,6 +29,7 @@ public slots:
     void onRightKeyPressed();
 
 private:
-    QPointer<ChannelDataModel> mDataModel;
+    //QPointer<ChannelDataModel> mDataModel;
+    QPointer<TreeModel> mDataModel;
     ControllerList mControllerList;
 };

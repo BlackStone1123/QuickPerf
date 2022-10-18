@@ -7,5 +7,7 @@
         <file>Qml/PointSetView.qml</file>
         <file>Qml/BarSetChannel.qml</file>
         <file>Qml/AxisItem.qml</file>
+        <file>Qml/PerfTreeViewItem.qml</file>
+        <file>Qml/PerfTreeView.qml</file>
     </qresource>
 </RCC>

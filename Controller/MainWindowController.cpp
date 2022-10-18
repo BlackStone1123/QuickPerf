@@ -6,9 +6,11 @@
 
 #include "PerfGraphViewController.h"
 #include "SingleChannelController.h"
+#include "PerfListViewController.h"
 #include "../DataModel/RectangleViewModel.h"
 #include "../DataModel/ChannelDataModel.h"
 #include "../DataModel/DataGenerator.h"
+#include "../DataModel/TreeModel.h"
 
 static const std::string title = "QuickPerf";
 
@@ -45,9 +47,11 @@ QPointer<QQuickView> MainWindowController::createQuickView(const QUrl& url, size
 void MainWindowController::registerMetaTypes()
 {
     qmlRegisterType<PerfGraphViewController>("com.biren.dataModel", 1, 0, "PerfGraphViewController");
+    qmlRegisterType<PerfListViewController>("com.biren.dataModel", 1, 0, "PerfListViewController");
     qmlRegisterType<SingleChannelController>("com.biren.dataModel", 1, 0, "SingleChannelController");
 
     qmlRegisterUncreatableType<RectangleViewModel>("com.biren.dataModel", 1, 0, "RectangleViewModel", "Should not be created from qml file");
+    qmlRegisterUncreatableType<TreeModel>("com.biren.dataModel", 1, 0, "TreeModel", "Should not be created from qml file");
     qmlRegisterUncreatableType<ChannelDataModel>("com.biren.dataModel", 1, 0, "ChannelDataModel", "Should not be created from qml file");
     qmlRegisterUncreatableType<DataGenerator>("com.biren.dataModel", 1, 0, "DataGenerator", "Should not be created from qml file");
 }

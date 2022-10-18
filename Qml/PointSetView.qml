@@ -108,8 +108,6 @@ Item {
             var ctx = canvas.getContext("2d");
             ctx.globalCompositeOperation = "source-over";
 
-            // drawBackground(ctx);
-
             var points = [];
 
             if(startPos >= pointSetModel.length)
@@ -119,7 +117,7 @@ Item {
 
             for (var i = startPos, j = 0; i< startPos + numPoints ; i++, j++) {
 
-                points.push({x: j * stride, y: root.height - pointSetModel[i]});
+                points.push({x: j * stride, y: root.height - pointSetModel[i] * root.height / 100 });
             }
 
             drawLines(ctx, lineColor, points);

@@ -15,14 +15,14 @@ find_package(Qt5 COMPONENTS Core Quick REQUIRED)
 
 file(GLOB_RECURSE dataModelSource DataModel/*.cpp)
 file(GLOB_RECURSE controllerSource Controller/*.cpp)
-file(GLOB_RECURSE widgetSource CustomWidget/*.cpp)
+file(GLOB_RECURSE json Json/*.cpp)
 
 add_executable(QuickTest
    main.cpp
    qml.qrc
    ${controllerSource}
    ${dataModelSource}
-   ${widgetSource}
+   ${json}
 )
 
 target_compile_definitions(QuickTest

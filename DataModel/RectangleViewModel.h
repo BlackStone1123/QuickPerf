@@ -5,6 +5,7 @@
 class RectangleViewModel: public QAbstractListModel
 {
     Q_OBJECT
+    Q_PROPERTY(int rectBaseOffset READ getBaseOffset WRITE setBaseOffset NOTIFY rectBaseOffsetChanged)
 
 public:
     RectangleViewModel(const QList<qreal>& datas, QObject* parent = nullptr);
@@ -19,9 +20,13 @@ public:
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     virtual int rowCount(const QModelIndex & parent = QModelIndex()) const override;
 
-    void setBaseOffset(size_t baseOffset);
+    void setBaseOffset(int baseOffset);
+    int getBaseOffset() const {return mBaseOffset;}
+
+signals:
+    void rectBaseOffsetChanged();
 
 private:
     const QList<qreal>& mDatas;
-    size_t mBaseOffset{0};
+    int mBaseOffset{0};
 };

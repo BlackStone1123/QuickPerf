@@ -1,112 +1,134 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.0
 import QtQuick.Controls 1.0
-import QtGraphicalEffects 1.12
 import com.biren.dataModel 1.0
 
 FocusScope{
     id: root
 
-    property int currentChannelIndex: graphListView.currentIndex
+    //property int currentChannelIndex: graphListView.currentIndex
     property SingleChannelController firshChannelController: null
 
     PerfGraphViewController{
         id: graphController
     }
 
-    Item{
-        id: panelLayer
+    RowLayout{
+        id: horLayout
 
         anchors.fill: parent
 
-        Repeater{
-            id: verSplitLineRepeater
+        Rectangle{
+            id: leftArea
 
-            model: 20
-            delegate: Rectangle{
-                id: splitLine
-
-                x: index * (root.width) / 20
-                y: 0
-                width: 1
-                height: root.height
-                color: "#d7d7d7"
-            }
-        }
-    }
-
-    ColumnLayout{
-        id: verLayout
-
-        anchors.fill: parent
-
-        AxisItem{
-            id: axisItem
-
-            Layout.fillWidth: true
-        }
-
-        ScrollView{
-            id: scrollView
-
-            Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.preferredWidth: 120
+        }
 
-            focus: true
+        Item {
+            id: rightArea
 
-            ListView{
-                id: graphListView
+            Layout.fillHeight: true
+            Layout.fillWidth: true
 
-                focus: true
-                model: graphController.graphModel
+            ColumnLayout{
+                id: verLayout
 
-                add: Transition{
-                    NumberAnimation { properties: "opacity"; from: 0; to: 1.0; duration: 200}
+                anchors.fill: parent
+                spacing: 0
+
+                AxisItem{
+                    id: axisItem
+
+                    Layout.fillWidth: true
                 }
 
-                highlight: Rectangle{
-                    color: "#80add8e6"
-                    anchors{
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
+                Item{
+                    id: panelLayer
 
-                contentWidth: root.width
-                delegate: Loader{
-                    id: barSetLoader
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
 
-                    anchors.left: parent.left
-                    anchors.right: parent.right
+                    Repeater{
+                        id: verSplitLineRepeater
+                        anchors.fill: parent
 
-                    height: 100
-                    source: "BarSetChannel.qml"
+                        model: 20
+                        delegate: Rectangle{
+                            id: splitLine
 
-                    Binding {
-                        target: barSetLoader.item
-                        property: "__dataGenerator"
-                        value: model.Generator
-                        when: barSetLoader.status === Loader.Ready
-                    }
-
-                    Binding {
-                        target: barSetLoader.item
-                        property: "__barColor"
-                        value: model.Color
-                        when: barSetLoader.status === Loader.Ready
-                    }
-
-                    onLoaded: {
-                        graphController.registerSingleChannelController(item.controller);
-                        if(firshChannelController === null)
-                        {
-                            firshChannelController = item.controller;
+                            x: index * (parent.width) / 20
+                            y: 0
+                            width: 1
+                            height: parent.height
+                            color: "#d7d7d7"
                         }
                     }
                 }
             }
-            horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
         }
+    }
+
+    ScrollView{
+        id: scrollView
+
+        anchors.fill: parent
+        anchors.topMargin: 90
+
+        focus: true
+
+        PerfTreeView{
+            id: graphTreeView
+
+            focus: true
+
+            rowPadding: 10
+            rowSpacing: 0
+            rowHeight: 30
+
+            selectionEnabled: true
+            hoverEnabled: true
+
+            model: graphController.graphModel
+
+            contentItem: RowLayout{
+
+                Rectangle{
+                    id: leftComp
+
+                    color: "transparent"
+
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: 120 - 15 - graphTreeView.rowPadding * currentRow.depth
+
+                    Text {
+                        anchors.verticalCenter: leftComp.verticalCenter
+                        anchors.left: leftComp.left
+                        text: currentRow.currentData.key
+                    }
+                }
+
+                BarSetChannel{
+                    id: barset
+
+                    __dataGenerator: graphController.getDataGenerator(currentRow.currentData.key)
+                    __barColor: currentRow.depth == 0 ? "red" : currentRow.depth == 1 ? "green" : currentRow.depth ==  2 ? "blue" : "black"
+
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+
+                    Component.onCompleted: {
+                        graphController.registerSingleChannelController(barset.controller);
+                        if(firshChannelController === null)
+                        {
+                            firshChannelController = barset.controller;
+                        }
+                    }
+                }
+            }
+        }
+
+        horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
     }
 
     GraphBorder{

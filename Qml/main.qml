@@ -9,15 +9,15 @@ Rectangle {
         anchors.fill: parent
         spacing: 0
 
-        PerfListView{
-            id: listView
+//        PerfListView{
+//            id: listView
 
-            Layout.fillHeight: true
-            Layout.preferredWidth: 150
-            Layout.minimumWidth: 150
+//            Layout.fillHeight: true
+//            Layout.preferredWidth: 150
+//            Layout.minimumWidth: 150
 
-            KeyNavigation.tab: graphView
-        }
+//            KeyNavigation.tab: graphView
+//        }
 
         PerfGraphView{
             id: graphView
@@ -25,7 +25,7 @@ Rectangle {
             Layout.fillHeight: true
             Layout.fillWidth: true
 
-            KeyNavigation.tab: listView
+            //KeyNavigation.tab: listView
             focus: true
         }
     }

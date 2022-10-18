@@ -16,6 +16,8 @@ Item{
     property var __dataGenerator: null
     property var __barColor: "red"
 
+    clip: true
+
     Component{
         id: indicator
 
@@ -74,11 +76,11 @@ Item{
             top: parent.top
             bottom: parent.bottom
             left: parent.left
-            leftMargin: __barWidth * (channelController.rectBaseOffset - channelController.rangeStartPos)
+            leftMargin: __barWidth * (channelController.barSetModel.rectBaseOffset - channelController.rangeStartPos)
         }
 
-        active: channelController.loaderType === SingleChannelController.Rectangle
-        visible: active
+        //active: channelController.loaderType === SingleChannelController.Rectangle
+        visible: channelController.loaderType === SingleChannelController.Rectangle
 
         sourceComponent: Component{
             id: recViewComp
@@ -96,7 +98,7 @@ Item{
 
                         anchors.bottom: parent.bottom
                         implicitWidth: __barWidth
-                        implicitHeight: model.Amplitude
+                        implicitHeight: model.Amplitude * root.height / 100
                         color: hoverHandler.hovered ? Qt.darker(__barColor, 2.0) : __barColor
 
                         HoverHandler{

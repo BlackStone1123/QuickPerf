@@ -11,7 +11,6 @@ class SingleChannelController: public QObject
     Q_PROPERTY(bool loading MEMBER mLoading NOTIFY loadingUpdated)
     Q_PROPERTY(int displayingDataCount MEMBER mDisplayingDataCount NOTIFY displayingDataCountChanged)
     Q_PROPERTY(int rangeStartPos MEMBER mRangeStartPos NOTIFY rangeStartPosChanged)
-    Q_PROPERTY(int rectBaseOffset MEMBER mRectViewBaseOffset NOTIFY rectBaseOffsetChanged)
     Q_PROPERTY(LoaderType loaderType MEMBER mLoaderType NOTIFY loaderTypeChanged)
     Q_PROPERTY(RectangleViewModel* barSetModel MEMBER mBarSetModel NOTIFY barSetModelChanged)
     Q_PROPERTY(DataGenerator* dataGenerator READ getDataGenerator WRITE setDataGenerator NOTIFY dataGeneratorChanged)
@@ -49,7 +48,6 @@ signals:
     void dataGeneratorChanged();
     void rangeStartPosChanged();
     void displayingDataCountChanged();
-    void rectBaseOffsetChanged();
 
 private:
     void onDataLoadedArrived(const QVariant& data);
@@ -69,7 +67,6 @@ private:
     LoaderType mLoaderType {Rectangle};
 
     size_t mRangeStartPos {0};
-    size_t mRectViewBaseOffset{0};
     size_t mDisplayingDataCount {INITIAL_DISPLAYING_DATA_RANGE};
 
     size_t mTotalRange{ INITIAL_TOTAL_DATA_RANGE };

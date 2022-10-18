@@ -39,8 +39,9 @@ int RectangleViewModel::rowCount(const QModelIndex & parent) const
     return MAXIMUM_RECTANGLE_DATA_COUNT;
 }
 
-void RectangleViewModel::setBaseOffset(size_t baseOffset)
+void RectangleViewModel::setBaseOffset(int baseOffset)
 {
     mBaseOffset = baseOffset;
+    emit rectBaseOffsetChanged();
     emit dataChanged(index(0), index(MAXIMUM_RECTANGLE_DATA_COUNT - 1));
 }

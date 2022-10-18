@@ -35,8 +35,12 @@ void SingleChannelController::loadInitialDatas()
     // Bind the new row with data generator
     QObject::connect(mGenerator, &DataGenerator::dataLoadFinished, this, &SingleChannelController::onDataLoadedArrived);
 
-    mAmplitudes = mGenerator->generate(mTotalRange ,true).value<QList<qreal>>();
     mLoaderType = mDisplayingDataCount > MAXIMUM_RECTANGLE_DISPLAYING_DATA_COUNT ? PointSet : Rectangle;
+    emit loaderTypeChanged();
+
+    mAmplitudes = mGenerator->generate(mTotalRange ,true).value<QList<qreal>>();
+    emit bundleUpdated();
+
     mBarSetModel->setBaseOffset(mRangeStartPos);
 }
 
@@ -134,18 +138,15 @@ void SingleChannelController::rebase()
 {
     if(mLoaderType == Rectangle)
     {
-        bool rebase = (MAXIMUM_RECTANGLE_DATA_COUNT < (mRangeStartPos - mRectViewBaseOffset)) ||
-                (mDisplayingDataCount > MAXIMUM_RECTANGLE_DATA_COUNT - (mRangeStartPos - mRectViewBaseOffset))||
-                mRangeStartPos < mRectViewBaseOffset;
+        size_t baseOffset = mBarSetModel->getBaseOffset();
+        bool rebase = (MAXIMUM_RECTANGLE_DATA_COUNT < (mRangeStartPos - baseOffset)) ||
+                (mDisplayingDataCount > MAXIMUM_RECTANGLE_DATA_COUNT - (mRangeStartPos - baseOffset))||
+                mRangeStartPos < baseOffset;
 
         if(rebase)
         {
             std::cout << "Rebase rectangle model offset:"<< mRangeStartPos << std::endl;
-
-            mRectViewBaseOffset = mRangeStartPos;
-            emit rectBaseOffsetChanged();
-
-            mBarSetModel->setBaseOffset(mRectViewBaseOffset);
+            mBarSetModel->setBaseOffset(mRangeStartPos);
         }
     }
 }
