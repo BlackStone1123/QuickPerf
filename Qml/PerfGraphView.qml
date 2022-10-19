@@ -1,69 +1,55 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.0
-import QtQuick.Controls 1.0
+import QtQuick.Controls 1.4
 import com.biren.dataModel 1.0
 
 FocusScope{
     id: root
 
     //property int currentChannelIndex: graphListView.currentIndex
-    property SingleChannelController firshChannelController: null
+    property SingleChannelController firstChannelController: null
+    property var handleComp: null
+    property var handleWidth: 1
 
     PerfGraphViewController{
         id: graphController
     }
 
-    RowLayout{
-        id: horLayout
+    Row{
+        id: backGround
 
         anchors.fill: parent
+        spacing: handleComp.width
 
         Rectangle{
-            id: leftArea
+            id: leftBack
 
-            Layout.fillHeight: true
-            Layout.preferredWidth: 120
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+
+            width: leftArea.width
         }
 
-        Item {
-            id: rightArea
+        Item{
+            id: rightBack
 
-            Layout.fillHeight: true
-            Layout.fillWidth: true
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
 
-            ColumnLayout{
-                id: verLayout
+            width: rightArea.width
 
-                anchors.fill: parent
-                spacing: 0
+            Repeater{
+                id: verSplitLineRepeater
 
-                AxisItem{
-                    id: axisItem
+                model: 20
+                delegate: Rectangle{
+                    id: splitLine
 
-                    Layout.fillWidth: true
-                }
-
-                Item{
-                    id: panelLayer
-
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    Repeater{
-                        id: verSplitLineRepeater
-                        anchors.fill: parent
-
-                        model: 20
-                        delegate: Rectangle{
-                            id: splitLine
-
-                            x: index * (parent.width) / 20
-                            y: 0
-                            width: 1
-                            height: parent.height
-                            color: "#d7d7d7"
-                        }
-                    }
+                    x: index * (parent.width) / 20
+                    y: 0
+                    width: 1
+                    height: parent.height
+                    color: "#d7d7d7"
                 }
             }
         }
@@ -85,26 +71,36 @@ FocusScope{
             rowPadding: 10
             rowSpacing: 0
             rowHeight: 30
+            hoverColor: "#80add8e6"
+            selectedColor: "#80b0c4de"
 
             selectionEnabled: true
             hoverEnabled: true
 
             model: graphController.graphModel
 
-            contentItem: RowLayout{
+            contentItem: Row{
+                id: contentRow
+                spacing: handleComp.width
 
                 Rectangle{
                     id: leftComp
 
                     color: "transparent"
 
-                    Layout.fillHeight: true
-                    Layout.preferredWidth: 120 - 15 - graphTreeView.rowPadding * currentRow.depth
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: leftArea.width - 15 - graphTreeView.rowPadding * currentRow.depth
 
                     Text {
                         anchors.verticalCenter: leftComp.verticalCenter
                         anchors.left: leftComp.left
+                        anchors.right: leftComp.right
+
                         text: currentRow.currentData.key
+                        font.pixelSize: 12
+                        font.family: "Times"
+                        elide: Text.ElideRight
                     }
                 }
 
@@ -114,14 +110,15 @@ FocusScope{
                     __dataGenerator: graphController.getDataGenerator(currentRow.currentData.key)
                     __barColor: currentRow.depth == 0 ? "red" : currentRow.depth == 1 ? "green" : currentRow.depth ==  2 ? "blue" : "black"
 
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: rightArea.width
 
                     Component.onCompleted: {
                         graphController.registerSingleChannelController(barset.controller);
-                        if(firshChannelController === null)
+                        if(firstChannelController === null)
                         {
-                            firshChannelController = barset.controller;
+                            firstChannelController = barset.controller;
                         }
                     }
                 }
@@ -131,11 +128,69 @@ FocusScope{
         horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
     }
 
+    SplitView{
+        id: splitView
+
+        anchors.fill: parent
+        orientation: Qt.Horizontal
+
+        Rectangle{
+            id: leftArea
+
+            Layout.fillHeight: true
+            Layout.preferredWidth: 120
+            Layout.minimumWidth: 120
+
+            color: "transparent"
+        }
+
+        Item {
+            id: rightArea
+
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+
+            ColumnLayout{
+                id: verLayout
+
+                anchors.fill: parent
+                spacing: 0
+
+                AxisItem{
+                    id: axisItem
+
+                    beginIndex: firstChannelController.rangeStartPos
+                    displayingCount: firstChannelController.displayingDataCount
+                    Layout.fillWidth: true
+                }
+
+                Item{
+                    id: manipulateArea
+
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                }
+            }
+        }
+
+        handleDelegate: Rectangle{
+            id: handle
+
+            width: styleData.hovered || styleData.pressed? 2 * handleWidth : handleWidth
+            height: root.height
+            color: "black"
+
+            Component.onCompleted: {
+                handleComp = handle;
+            }
+        }
+    }
+
     GraphBorder{
         id: border
         visible: root.activeFocus
 
-        border.color: firshChannelController.loaderType === SingleChannelController.Rectangle ? "cyan" : "black"
+        border.color: firstChannelController.loaderType === SingleChannelController.Rectangle ? "cyan" : "black"
     }
 
     MouseArea{

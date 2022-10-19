@@ -39,7 +39,7 @@ class RandomDataGenerator: public DataGenerator
 public:
     RandomDataGenerator(QObject* parent);
     virtual ~RandomDataGenerator();
-    virtual size_t getBackEndDataSize() const { return 20000; }
+    virtual size_t getBackEndDataSize() const override { return 20000; }
 
 private:
     virtual QVariant kernelFunc(size_t number) override;

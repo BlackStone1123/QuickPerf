@@ -6,6 +6,9 @@ Rectangle {
 
     property var secondTickCount: 9
     property var tickBlockCount: 10
+    property int beginIndex: 0
+    property real totalCount: 20000
+    property real displayingCount: 100
 
     implicitHeight: 90
 
@@ -42,6 +45,40 @@ Rectangle {
         }
     }
 
+    Component{
+        id: splitterComp
+
+        Item {
+            id: splitter
+
+            implicitHeight: 40
+            implicitWidth: 5
+
+            ColumnLayout{
+                anchors.fill: parent
+                spacing: 0
+
+                Rectangle{
+                    id: top
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: parent.height / 4
+
+                    color: "gray"
+                }
+
+                Rectangle{
+                    id: bottom
+
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: 1
+                    Layout.alignment: Qt.AlignHCenter
+
+                    color: "gray"
+                }
+            }
+        }
+    }
+
     ColumnLayout{
         id: verLayout
 
@@ -57,6 +94,8 @@ Rectangle {
                 id: horLayout
 
                 anchors.fill: parent
+                spacing: 0
+
                 Repeater{
                     id: tickBlockRepeater
 
@@ -74,10 +113,56 @@ Rectangle {
         }
 
         Rectangle{
-            color: "gray"
+            color: "#dcdcdc"
 
             Layout.fillWidth: true
             Layout.fillHeight: true
+
+            Rectangle{
+                id: slider
+
+                color: "transparent"
+
+                x: beginIndex * root.width / totalCount
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+
+                width: root.width * displayingCount / totalCount
+
+                Loader{
+                    id: leftSplitter
+                    z: 1
+                    anchors.left: parent.left
+                    anchors.leftMargin: -2
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+
+                    sourceComponent: splitterComp
+                }
+
+                Rectangle{
+                    id: viewPort
+
+                    anchors.left: leftSplitter.right
+                    anchors.right: rightSpliter.left
+                    anchors.leftMargin: -2
+                    anchors.rightMargin: -2
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                }
+
+                Loader{
+                    id: rightSpliter
+
+                    anchors.right: parent.right
+                    anchors.rightMargin: -2
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    z: 1
+
+                    sourceComponent: splitterComp
+                }
+            }
         }
     }
 }

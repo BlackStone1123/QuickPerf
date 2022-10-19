@@ -50,7 +50,9 @@ Flickable {
     //ScrollBar.vertical: ScrollBar {}
 
     onCurrentIndexChanged: {
-        if(currentIndex) currentData = model.data(currentIndex)
+        if(currentIndex) {
+            currentData = model.data(currentIndex)
+        }
     }
 
     PerfTreeViewItem {
