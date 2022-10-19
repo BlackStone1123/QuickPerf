@@ -93,14 +93,11 @@ Item {
                 var x = points[i].x;
                 var y = points[i].y;
 
-//                if (i === 0) {
-//                    ctx.moveTo(x, y);
-//                } else {
-//                    ctx.lineTo(x, y);
-//                }
-                ctx.fillRect(x, y, stride, root.height - y)
+                if(root.height - y > 1)
+                {
+                    ctx.fillRect(x, y, stride, root.height - y);
+                }
             }
-            //ctx.stroke();
             ctx.restore();
         }
 

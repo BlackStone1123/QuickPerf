@@ -107,7 +107,7 @@ FocusScope{
                 BarSetChannel{
                     id: barset
 
-                    __dataGenerator: graphController.getDataGenerator(currentRow.currentData.key)
+                    __dataGenerator: graphController.getDataGenerator(currentRow.currentData.value)
                     __barColor: currentRow.depth == 0 ? "red" : currentRow.depth == 1 ? "green" : currentRow.depth ==  2 ? "blue" : "black"
 
                     anchors.top: parent.top
@@ -162,6 +162,10 @@ FocusScope{
                     beginIndex: firstChannelController.rangeStartPos
                     displayingCount: firstChannelController.displayingDataCount
                     Layout.fillWidth: true
+
+                    onSliderBeginIndexChanged: {
+                        graphController.onSliderPositionChanged(position)
+                    }
                 }
 
                 Item{
@@ -169,6 +173,24 @@ FocusScope{
 
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+
+                    MouseArea{
+                        id: scrollArea
+                        anchors.fill: parent
+
+                        onWheel: {
+                            if(root.activeFocus && (wheel.modifiers & Qt.ControlModifier)){
+                                graphController.onWheelScaled(wheel.angleDelta)
+                                wheel.accepted = true
+                            }
+                            else
+                                wheel.accepted = false
+                        }
+
+                        onPressed: {
+                            mouse.accepted = false
+                        }
+                    }
                 }
             }
         }
@@ -176,7 +198,7 @@ FocusScope{
         handleDelegate: Rectangle{
             id: handle
 
-            width: styleData.hovered || styleData.pressed? 2 * handleWidth : handleWidth
+            width: styleData.hovered || styleData.pressed? 3 * handleWidth : handleWidth
             height: root.height
             color: "black"
 
@@ -191,24 +213,6 @@ FocusScope{
         visible: root.activeFocus
 
         border.color: firstChannelController.loaderType === SingleChannelController.Rectangle ? "cyan" : "black"
-    }
-
-    MouseArea{
-        id: scrollArea
-        anchors.fill: parent
-
-        onWheel: {
-            if(root.activeFocus && (wheel.modifiers & Qt.ControlModifier)){
-                graphController.onWheelScaled(wheel.angleDelta)
-                wheel.accepted = true
-            }
-            else
-                wheel.accepted = false
-        }
-
-        onPressed: {
-            mouse.accepted = false
-        }
     }
 
     Keys.onPressed: {

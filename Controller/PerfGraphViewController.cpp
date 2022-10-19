@@ -12,6 +12,7 @@
 #include "../Json/JsonEntry.h"
 #include "../DataModel/TreeItem.h"
 #include "../DataModel/TreeModel.h"
+#include "../DataModel/DataCenter.h"
 
 #include "SingleChannelController.h"
 
@@ -55,7 +56,7 @@ namespace  {
     void populateTree(TreeItem* rootItem)
     {
         QFile jsonFile;
-        jsonFile.setFileName("D:\\QuickPerf\\sample.json");
+        jsonFile.setFileName("D:\\Code\\QuickTest\\pfa_test_config.json");
 
         if(!jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)){
             qCritical() << "error: json file cannot be open";
@@ -75,18 +76,6 @@ namespace  {
 PerfGraphViewController::PerfGraphViewController(QObject* parent)
     :QObject(parent)
 {
-//    QList<QPointer<DataGenerator>> genList;
-//    for(int i = 0; i < 10; i++)
-//    {
-//        genList.append(new RandomDataGenerator(this));
-//    }
-
-//    mDataModel = new ChannelDataModel(genList, this);
-//    QObject::connect(this, &PerfGraphViewController::insertRowBefore, [this](int index){
-//        QPointer<DataGenerator> gen = new RandomDataGenerator(this);
-//        mDataModel->addChannelDataBefore(index, gen);
-//    });
-
     TreeItem* root = new TreeItem;
     populateTree(root);
     mDataModel = new TreeModel(root, this);
@@ -105,11 +94,25 @@ void PerfGraphViewController::registerSingleChannelController(SingleChannelContr
 
 DataGenerator* PerfGraphViewController::getDataGenerator(QString key)
 {
-    return new RandomDataGenerator(this);
+    //return new RandomDataGenerator(this);
+
+    DataGenerator* pGenerator = DataCenter::creatDataGenerator(key);
+
+    if(pGenerator)
+    {
+        pGenerator->setParent(this);
+        return pGenerator;
+    }
+    else{
+        return new RandomDataGenerator(this);
+    }
 }
 
 void PerfGraphViewController::onWheelScaled(const QPointF& point)
 {
+    if(mControllerList.isEmpty())
+        return;
+
     auto singleController = mControllerList.front();
     int currentDisplayingCount = singleController->getDisplayingDataCount();
 
@@ -122,6 +125,9 @@ void PerfGraphViewController::onWheelScaled(const QPointF& point)
     {
         for(auto controller: mControllerList)
         {
+            if(controller == nullptr)
+                continue;
+
             controller->zoomTo(scaledNumber);
         }
     }
@@ -133,6 +139,9 @@ void PerfGraphViewController::onWheelScaled(const QPointF& point)
 
 void PerfGraphViewController::onLeftKeyPressed()
 {
+    if(mControllerList.isEmpty())
+        return;
+
     auto singleController = mControllerList.front();
     int currentDisplayingCount = singleController->getDisplayingDataCount();
 
@@ -146,12 +155,18 @@ void PerfGraphViewController::onLeftKeyPressed()
 
     for (auto controller: mControllerList)
     {
+        if(controller == nullptr)
+            continue;
+
         controller->move(dataStride, false);
     }
 }
 
 void PerfGraphViewController::onRightKeyPressed()
 {
+    if(mControllerList.isEmpty())
+        return;
+
     auto singleController = mControllerList.front();
     int currentDisplayingCount = singleController->getDisplayingDataCount();
 
@@ -165,6 +180,25 @@ void PerfGraphViewController::onRightKeyPressed()
 
     for (auto controller: mControllerList)
     {
+        if(controller == nullptr)
+            continue;
+
         controller->move(dataStride, true);
     }
+}
+
+void PerfGraphViewController::onSliderPositionChanged(int position)
+{
+    for (auto controller: mControllerList)
+    {
+        if(controller == nullptr)
+            continue;
+
+        controller->moveTo(position);
+    }
+}
+
+void PerfGraphViewController::onSliderRangeChanged(int range)
+{
+
 }

@@ -16,19 +16,19 @@ DataGenerator::~DataGenerator()
 {
 }
 
-QVariant DataGenerator::generate(size_t number, bool immediate)
+QVariant DataGenerator::generate(size_t from, size_t number, bool immediate)
 {
     if(immediate)
-        return kernelFunc(number);
+        return kernelFunc(from, number);
 
     if(!isRunning())
     {
-        mGenReq.push_back(number);
+        mGenReq.push_back(qMakePair(from, number));
         start(LowPriority);
     }
     else {
         QMutexLocker locker(&mMutex);
-        mGenReq.push_back(number);
+        mGenReq.push_back(qMakePair(from, number));
         mCondition.wakeOne();
     }
 
@@ -38,6 +38,7 @@ QVariant DataGenerator::generate(size_t number, bool immediate)
 void DataGenerator::run()
 {
     size_t currentBatchNum = 0;
+    size_t currentBatchFrom = 0;
     bool taskAbort = false;
 
     while(true)
@@ -51,7 +52,8 @@ void DataGenerator::run()
 
         if(!taskAbort && mGenReq.count() > 0)
         {
-            currentBatchNum = this->mGenReq.front();
+            currentBatchFrom = this->mGenReq.front().first;
+            currentBatchNum = this->mGenReq.front().second;
             this->mGenReq.pop_front();
         }
         mMutex.unlock();
@@ -62,7 +64,7 @@ void DataGenerator::run()
         }
         else
         {
-            QVariant res = kernelFunc(currentBatchNum);
+            QVariant res = kernelFunc(currentBatchFrom, currentBatchNum);
             //sleep(2);
             emit dataLoadFinished(res);
         }
@@ -80,7 +82,7 @@ void DataGenerator::exit()
 }
 
 ////////////////////////////////////////////////////////////////////
-QVariant RandomDataGenerator::kernelFunc(size_t number)
+QVariant RandomDataGenerator::kernelFunc(size_t from, size_t number)
 {
     QList<qreal> res;
 
@@ -106,3 +108,4 @@ RandomDataGenerator::RandomDataGenerator(QObject* parent)
     mRandomEng.seed( rseed );
     rseed *= 100;
 }
+///////////////////////////////////////////////////////////////

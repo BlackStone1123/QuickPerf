@@ -27,6 +27,8 @@ public slots:
     void onWheelScaled(const QPointF&);
     void onLeftKeyPressed();
     void onRightKeyPressed();
+    void onSliderPositionChanged(int position);
+    void onSliderRangeChanged(int range);
 
 private:
     //QPointer<ChannelDataModel> mDataModel;

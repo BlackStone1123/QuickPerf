@@ -14,21 +14,21 @@ public:
     DataGenerator(QObject* parent = nullptr);
     virtual ~DataGenerator();
 
-    virtual QVariant generate(size_t number, bool immediate = false);
+    virtual QVariant generate(size_t from, size_t number, bool immediate = false);
     virtual size_t getBackEndDataSize() const = 0;
 
 signals:
     void dataLoadFinished(const QVariant&);
 
 protected:
-    virtual QVariant kernelFunc(size_t number) = 0;
+    virtual QVariant kernelFunc(size_t from, size_t number) = 0;
     virtual void run() override;
     void exit();
-    int mIndex{0};
+
 private:
     QMutex mMutex;
     QWaitCondition mCondition;
-    QList<size_t> mGenReq;
+    QList<QPair<size_t, size_t>> mGenReq;
 
     bool mRestart{false};
     bool mAbort{false};
@@ -42,7 +42,7 @@ public:
     virtual size_t getBackEndDataSize() const override { return 20000; }
 
 private:
-    virtual QVariant kernelFunc(size_t number) override;
+    virtual QVariant kernelFunc(size_t from, size_t number) override;
 
 private:
     std::default_random_engine mRandomEng;

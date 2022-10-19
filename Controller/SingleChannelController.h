@@ -33,6 +33,7 @@ public:
     void setDataGenerator(DataGenerator* gen);
 
     void move(int count, bool forward);
+    void moveTo(int pos);
     void zoomTo(size_t count);
 
     int requestForMoveStride(size_t preferSize, bool forward);

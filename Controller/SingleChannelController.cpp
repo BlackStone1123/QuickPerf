@@ -1,5 +1,6 @@
 #include "SingleChannelController.h"
 #include <iostream>
+#include <QtMath>
 
 #include "../DataModel/RectangleViewModel.h"
 #include "../DataModel/DataGenerator.h"
@@ -38,7 +39,7 @@ void SingleChannelController::loadInitialDatas()
     mLoaderType = mDisplayingDataCount > MAXIMUM_RECTANGLE_DISPLAYING_DATA_COUNT ? PointSet : Rectangle;
     emit loaderTypeChanged();
 
-    mAmplitudes = mGenerator->generate(mTotalRange ,true).value<QList<qreal>>();
+    mAmplitudes = mGenerator->generate(0, mTotalRange ,true).value<QList<qreal>>();
     emit bundleUpdated();
 
     mBarSetModel->setBaseOffset(mRangeStartPos);
@@ -61,7 +62,7 @@ void SingleChannelController::startLoading(size_t loadSize)
     }
 
     mPendingLoading++;
-    mGenerator->generate(loadSize);
+    mGenerator->generate(mAmplitudes.count(), loadSize);
 }
 
 void SingleChannelController::move(int count, bool forward)
@@ -72,10 +73,15 @@ void SingleChannelController::move(int count, bool forward)
         std::cout << "range start position:"<< mRangeStartPos << " displaying data count:" << mDisplayingDataCount<< " total range:" << mTotalRange << std::endl;
 
         emit rangeStartPosChanged();
-    }
 
-    updateModel();
-    rebase();
+        updateModel();
+        rebase();
+    }
+}
+
+void SingleChannelController::moveTo(int pos)
+{
+    move(qFabs(pos - (int)mRangeStartPos) , (size_t)pos > mRangeStartPos);
 }
 
 void SingleChannelController::zoomTo(size_t count)
@@ -83,20 +89,18 @@ void SingleChannelController::zoomTo(size_t count)
     if(mDisplayingDataCount != count)
     {
         mDisplayingDataCount = count;
-        //std::cout << "range start position:"<< mRangeStartPos << " displaying data count:" << mDisplayingDataCount<< " total range:" << mTotalRange << std::endl;
-
         emit displayingDataCountChanged();
-    }
 
-    LoaderType type = mDisplayingDataCount > MAXIMUM_RECTANGLE_DISPLAYING_DATA_COUNT ? PointSet : Rectangle;
-    if(type != mLoaderType)
-    {
-        mLoaderType = type;
-        emit loaderTypeChanged();
-    }
+        LoaderType type = mDisplayingDataCount > MAXIMUM_RECTANGLE_DISPLAYING_DATA_COUNT ? PointSet : Rectangle;
+        if(type != mLoaderType)
+        {
+            mLoaderType = type;
+            emit loaderTypeChanged();
+        }
 
-    updateModel();
-    rebase();
+        updateModel();
+        rebase();
+    }
 }
 
 int SingleChannelController::requestForMoveStride(size_t preferSize, bool forward)

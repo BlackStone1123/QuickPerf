@@ -1,14 +1,16 @@
-import QtQuick 2.0
+import QtQuick 2.12
 import QtQuick.Layouts 1.0
 
 Rectangle {
     id: root
 
     property var secondTickCount: 9
-    property var tickBlockCount: 10
     property int beginIndex: 0
     property real totalCount: 20000
     property real displayingCount: 100
+
+    signal sliderBeginIndexChanged(int position)
+    signal sliderRangeChanged(int range)
 
     implicitHeight: 90
 
@@ -99,7 +101,7 @@ Rectangle {
                 Repeater{
                     id: tickBlockRepeater
 
-                    model: tickBlockCount
+                    model: 10
                     delegate: Loader{
                         id: tickBlockLoader
 
@@ -113,6 +115,8 @@ Rectangle {
         }
 
         Rectangle{
+            id: sliderChannel
+
             color: "#dcdcdc"
 
             Layout.fillWidth: true
@@ -127,7 +131,7 @@ Rectangle {
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
 
-                width: root.width * displayingCount / totalCount
+                width: displayingCount * root.width / totalCount
 
                 Loader{
                     id: leftSplitter
@@ -149,6 +153,21 @@ Rectangle {
                     anchors.rightMargin: -2
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
+
+                    MouseArea{
+                        id: sliderArea
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: containsMouse ? Qt.SizeAllCursor : Qt.ArrowCursor
+
+                        drag{
+                            target: slider
+                            axis: Drag.XAxis
+                            minimumX: 0
+                            maximumX: sliderChannel.width - slider.width
+                        }
+                    }
                 }
 
                 Loader{
@@ -161,6 +180,10 @@ Rectangle {
                     z: 1
 
                     sourceComponent: splitterComp
+                }
+
+                onXChanged: {
+                    root.sliderBeginIndexChanged(slider.x * root.totalCount / root.width);
                 }
             }
         }
