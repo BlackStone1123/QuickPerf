@@ -6,7 +6,7 @@ Rectangle {
 
     property var secondTickCount: 9
     property int beginIndex: 0
-    property real totalCount: 20000
+    property real totalCount: 2000
     property real displayingCount: 100
 
     signal sliderBeginIndexChanged(int position)

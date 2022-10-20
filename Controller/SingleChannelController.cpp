@@ -39,9 +39,7 @@ void SingleChannelController::loadInitialDatas()
     mLoaderType = mDisplayingDataCount > MAXIMUM_RECTANGLE_DISPLAYING_DATA_COUNT ? PointSet : Rectangle;
     emit loaderTypeChanged();
 
-    mAmplitudes = mGenerator->generate(0, mTotalRange ,true).value<QList<qreal>>();
-    emit bundleUpdated();
-
+    startLoading( mTotalRange );
     mBarSetModel->setBaseOffset(mRangeStartPos);
 }
 
@@ -62,7 +60,7 @@ void SingleChannelController::startLoading(size_t loadSize)
     }
 
     mPendingLoading++;
-    mGenerator->generate(mAmplitudes.count(), loadSize);
+    mGenerator->generate(mColumnName, mAmplitudes.count(), loadSize);
 }
 
 void SingleChannelController::move(int count, bool forward)
@@ -155,8 +153,13 @@ void SingleChannelController::rebase()
     }
 }
 
-void SingleChannelController::onDataLoadedArrived(const QVariant& data)
+void SingleChannelController::onDataLoadedArrived(const QString& columnName, const QVariant& data)
 {
+    if(columnName != mColumnName)
+    {
+        return;
+    }
+
     mPendingLoading--;
     if(mPendingLoading == 0)
     {
@@ -165,4 +168,9 @@ void SingleChannelController::onDataLoadedArrived(const QVariant& data)
     }
 
     appendDatas(data.value<QList<qreal>>());
+}
+
+int SingleChannelController::getTotalDataCount() const
+{
+    return mGenerator->getBackEndDataSize();
 }

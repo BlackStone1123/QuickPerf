@@ -38,8 +38,12 @@ public:
 
     int requestForMoveStride(size_t preferSize, bool forward);
     int requestForZoomStride(size_t count);
+
     size_t getTotalRange() const {return mTotalRange;}
     size_t getDisplayingDataCount() const {return mDisplayingDataCount;}
+
+    Q_INVOKABLE int getTotalDataCount() const;
+    Q_INVOKABLE void setColumnName(const QString& name){ mColumnName = name; }
 
 signals:
     void bundleUpdated();
@@ -51,7 +55,7 @@ signals:
     void displayingDataCountChanged();
 
 private:
-    void onDataLoadedArrived(const QVariant& data);
+    void onDataLoadedArrived(const QString& columnName, const QVariant& data);
     void appendDatas(const QList<qreal>&);
     void fetchMoreData(size_t count);
     void updateModel();
@@ -59,6 +63,7 @@ private:
 
 private:
     QList<qreal> mAmplitudes;
+    QString mColumnName;
 
     DataGenerator* mGenerator {nullptr};
     RectangleViewModel* mBarSetModel {nullptr};

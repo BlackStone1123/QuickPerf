@@ -115,6 +115,7 @@ FocusScope{
                     width: rightArea.width
 
                     Component.onCompleted: {
+                        barset.controller.setColumnName(currentRow.currentData.value);
                         graphController.registerSingleChannelController(barset.controller);
                         if(firstChannelController === null)
                         {
@@ -161,6 +162,8 @@ FocusScope{
 
                     beginIndex: firstChannelController.rangeStartPos
                     displayingCount: firstChannelController.displayingDataCount
+                    totalCount: firstChannelController.getTotalDataCount()
+
                     Layout.fillWidth: true
 
                     onSliderBeginIndexChanged: {

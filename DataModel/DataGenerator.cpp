@@ -16,19 +16,19 @@ DataGenerator::~DataGenerator()
 {
 }
 
-QVariant DataGenerator::generate(size_t from, size_t number, bool immediate)
+QVariant DataGenerator::generate(const QString& columnName, size_t from, size_t number, bool immediate)
 {
     if(immediate)
-        return kernelFunc(from, number);
+        return kernelFunc(columnName, from, number);
 
     if(!isRunning())
     {
-        mGenReq.push_back(qMakePair(from, number));
+        mGenReq.push_back({columnName, from, number});
         start(LowPriority);
     }
     else {
         QMutexLocker locker(&mMutex);
-        mGenReq.push_back(qMakePair(from, number));
+        mGenReq.push_back({columnName, from, number});
         mCondition.wakeOne();
     }
 
@@ -39,6 +39,8 @@ void DataGenerator::run()
 {
     size_t currentBatchNum = 0;
     size_t currentBatchFrom = 0;
+    QString columnName;
+
     bool taskAbort = false;
 
     while(true)
@@ -52,8 +54,9 @@ void DataGenerator::run()
 
         if(!taskAbort && mGenReq.count() > 0)
         {
-            currentBatchFrom = this->mGenReq.front().first;
-            currentBatchNum = this->mGenReq.front().second;
+            currentBatchFrom = this->mGenReq.front().from;
+            currentBatchNum = this->mGenReq.front().count;
+            columnName = this->mGenReq.front().columnName;
             this->mGenReq.pop_front();
         }
         mMutex.unlock();
@@ -64,11 +67,12 @@ void DataGenerator::run()
         }
         else
         {
-            QVariant res = kernelFunc(currentBatchFrom, currentBatchNum);
+            QVariant res = kernelFunc(columnName, currentBatchFrom, currentBatchNum);
             //sleep(2);
-            emit dataLoadFinished(res);
+            emit dataLoadFinished(columnName, res);
         }
     }
+    onThreadFinished();
 }
 
 void DataGenerator::exit()
@@ -82,7 +86,7 @@ void DataGenerator::exit()
 }
 
 ////////////////////////////////////////////////////////////////////
-QVariant RandomDataGenerator::kernelFunc(size_t from, size_t number)
+QVariant RandomDataGenerator::kernelFunc(const QString& column, size_t from, size_t number)
 {
     QList<qreal> res;
 

@@ -56,7 +56,7 @@ namespace  {
     void populateTree(TreeItem* rootItem)
     {
         QFile jsonFile;
-        jsonFile.setFileName("D:\\Code\\QuickTest\\pfa_test_config.json");
+        jsonFile.setFileName("D:\\QuickPerf\\pfa_test_config.json");
 
         if(!jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)){
             qCritical() << "error: json file cannot be open";
@@ -100,7 +100,7 @@ DataGenerator* PerfGraphViewController::getDataGenerator(QString key)
 
     if(pGenerator)
     {
-        pGenerator->setParent(this);
+        //pGenerator->setParent(this);
         return pGenerator;
     }
     else{

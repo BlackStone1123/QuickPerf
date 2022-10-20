@@ -8,20 +8,21 @@ class QAxObject;
 class ExcelDataGenerator: public DataGenerator
 {
 public:
-    ExcelDataGenerator(const QString& column, int columnCount, QObject* parent = nullptr);
+    ExcelDataGenerator(int rowCount, QObject* parent = nullptr);
     virtual ~ExcelDataGenerator();
     virtual size_t getBackEndDataSize() const override;
 
 private:
-    virtual QVariant kernelFunc(size_t from, size_t number) override;
+    virtual QVariant kernelFunc(const QString& column, size_t from, size_t number) override;
+    virtual void onThreadFinished() override;
 
 private:
     QAxObject* mExcel {nullptr};
     QAxObject* mWorkSheet {nullptr};
     QAxObject* mWorkBook {nullptr};
 
-    QString mColumn;
-    int mColumnCount{0};
+    int mRowCount{10000};
+    QList<QString> mTitleList;
 };
 
 class DataCenter: public QObject

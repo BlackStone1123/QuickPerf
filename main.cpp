@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     MainWindowController mainController;
     mainController.initialize();
 
-    DataCenter dataCenter("D:\\Code\\QuickTest\\spc_0_0_by_cycle_range.xlsx", &app);
+    DataCenter dataCenter("D:\\QuickPerf\\spc_0_0_by_cycle_range.xlsx", &app);
     dataCenter.initialize();
 
     auto pView = mainController.createQuickView(QStringLiteral("qrc:/Qml/main.qml"), 800, 610);
