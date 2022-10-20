@@ -26,7 +26,7 @@ public:
     explicit SingleChannelController(QObject* parent = nullptr);
     virtual ~SingleChannelController();
 
-    void loadInitialDatas();
+    void loadInitialDatas(int count = -1);
     void startLoading(size_t loadSize);
 
     DataGenerator* getDataGenerator() const { return mGenerator; }
@@ -41,9 +41,10 @@ public:
 
     size_t getTotalRange() const {return mTotalRange;}
     size_t getDisplayingDataCount() const {return mDisplayingDataCount;}
+    size_t getRangeStartPosition() const {return mRangeStartPos;}
 
     Q_INVOKABLE int getTotalDataCount() const;
-    Q_INVOKABLE void setColumnName(const QString& name){ mColumnName = name; }
+    Q_INVOKABLE void setKey(const QString& name){ mKey = name; }
 
 signals:
     void bundleUpdated();
@@ -63,7 +64,7 @@ private:
 
 private:
     QList<qreal> mAmplitudes;
-    QString mColumnName;
+    QString mKey;
 
     DataGenerator* mGenerator {nullptr};
     RectangleViewModel* mBarSetModel {nullptr};

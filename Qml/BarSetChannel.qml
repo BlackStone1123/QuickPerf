@@ -172,7 +172,7 @@ Item{
     Rectangle {
         id: endingLine
 
-        anchors.top: root.bottom
+        anchors.bottom: root.bottom
         anchors.left: root.left
         anchors.right: root.right
 

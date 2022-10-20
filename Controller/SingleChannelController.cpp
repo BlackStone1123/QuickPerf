@@ -20,7 +20,7 @@ SingleChannelController::~SingleChannelController()
 void SingleChannelController::appendDatas(const QList<qreal>& datasToAppend)
 {
     qDebug() << "begin append datas channel"
-             << " column name: " << mColumnName
+             << " key: " << mKey
              << " data size:" << datasToAppend.count()
              << " pending loading:" << mPendingLoading;
 
@@ -33,7 +33,7 @@ void SingleChannelController::appendDatas(const QList<qreal>& datasToAppend)
     }
 }
 
-void SingleChannelController::loadInitialDatas()
+void SingleChannelController::loadInitialDatas(int count)
 {
     if(mGenerator == nullptr)
         return;
@@ -44,7 +44,7 @@ void SingleChannelController::loadInitialDatas()
     mLoaderType = mDisplayingDataCount > MAXIMUM_RECTANGLE_DISPLAYING_DATA_COUNT ? PointSet : Rectangle;
     emit loaderTypeChanged();
 
-    startLoading( mTotalRange );
+    startLoading( count > 0 ? count : mTotalRange );
 }
 
 void SingleChannelController::setDataGenerator(DataGenerator* gen)
@@ -60,7 +60,7 @@ void SingleChannelController::startLoading(size_t loadSize)
 {
     if(mGenerator == nullptr)
     {
-        qDebug() << "loading ended as no generator for column:" << mColumnName;
+        qDebug() << "loading ended as no generator for column:" << mKey;
         return;
     }
 
@@ -130,6 +130,8 @@ void SingleChannelController::fetchMoreData(size_t count)
 {
     size_t batchNum = std::ceil((float)count/mBatchSize);
     size_t loadSize = mBatchSize * batchNum;
+
+    loadSize = std::min(loadSize, getTotalDataCount() - mTotalRange);
     std::cout<< "Ready to load data count:" << loadSize << std::endl;
 
     mTotalRange += loadSize;
@@ -168,7 +170,7 @@ void SingleChannelController::onDataLoadedArrived(const QVariant& data)
 {
     if(mPendingLoading == 0)
     {
-        qDebug() << "Do not have pending loading for:" << mColumnName;
+        qDebug() << "Do not have pending loading for:" << mKey;
         return;
     }
 

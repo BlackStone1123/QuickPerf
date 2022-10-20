@@ -65,6 +65,7 @@ size_t ExcelDataCenter::getBackEndDataSize() const
     return mRowCount;
 }
 
+#include <QDir>
 QVariant ExcelDataCenter::kernelFunc(const QString& column, size_t from, size_t number)
 {
     if(mExcel == nullptr)

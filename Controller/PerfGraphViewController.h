@@ -17,8 +17,8 @@ public:
     PerfGraphViewController(QObject* parent = nullptr);
     virtual ~PerfGraphViewController();
 
-    Q_INVOKABLE void registerSingleChannelController(const QString& columnName, SingleChannelController*);
-    Q_INVOKABLE void unRegisterSingleChannelController(const QString& columnName);
+    Q_INVOKABLE void registerSingleChannelController(const QString& key, SingleChannelController*);
+    Q_INVOKABLE void unRegisterSingleChannelController(const QString& key);
     Q_INVOKABLE DataGenerator* getDataGenerator(const QString& value);
 
 signals:

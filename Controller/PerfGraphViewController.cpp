@@ -50,7 +50,7 @@ namespace  {
     void populateTree(TreeItem* rootItem)
     {
         QFile jsonFile;
-        jsonFile.setFileName("D:\\Code\\QuickTest\\pfa_test_config.json");
+        jsonFile.setFileName("..\\..\\pfa_test_config.json");
 
         if(!jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)){
             qCritical() << "error: json file cannot be open";
@@ -80,19 +80,24 @@ PerfGraphViewController::~PerfGraphViewController()
     std::cout << "PerfGraphViewController deletion" << std::endl;
 }
 
-void PerfGraphViewController::registerSingleChannelController(const QString& columnName, SingleChannelController* controller)
+void PerfGraphViewController::registerSingleChannelController(const QString& key, SingleChannelController* controller)
 {
-    if(!columnName.isEmpty())
+    if(!key.isEmpty() && controller->getDataGenerator() != nullptr)
     {
-        controller->setColumnName(columnName);
-        controller->loadInitialDatas();
-
-        if(mControllerList.find(columnName) == mControllerList.end())
+        if(mControllerList.find(key) == mControllerList.end())
         {
-            mControllerList[columnName] = controller;
+            mControllerList[key] = controller;
+            controller->setKey(key);
+            controller->loadInitialDatas(mControllerList.isEmpty() ? -1 : mControllerList.first()->getTotalRange());
+
+            if(!mControllerList.isEmpty())
+            {
+                controller->moveTo(mControllerList.first()->getRangeStartPosition());
+                controller->zoomTo(mControllerList.first()->getDisplayingDataCount());
+            }
         }
         else {
-            qDebug() << "the column name is duplicated :" << columnName;
+            qDebug() << "the key is duplicated :" << key;
         }
     }
 }
