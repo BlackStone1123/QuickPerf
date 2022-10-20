@@ -1,9 +1,10 @@
 #include "SingleChannelController.h"
 #include <iostream>
 #include <QtMath>
+#include <QDebug>
 
 #include "../DataModel/RectangleViewModel.h"
-#include "../DataModel/DataGenerator.h"
+#include "../DataModel/DataCenter.h"
 
 SingleChannelController::SingleChannelController(QObject* parent)
     : QObject(parent)
@@ -18,9 +19,10 @@ SingleChannelController::~SingleChannelController()
 
 void SingleChannelController::appendDatas(const QList<qreal>& datasToAppend)
 {
-    std::cout<< "begin append datas channel"
+    qDebug() << "begin append datas channel"
+             << " column name: " << mColumnName
              << " data size:" << datasToAppend.count()
-             << " pending loading:" << mPendingLoading <<std::endl;
+             << " pending loading:" << mPendingLoading;
 
     mAmplitudes.append(datasToAppend);
     emit bundleUpdated();
@@ -33,26 +35,35 @@ void SingleChannelController::appendDatas(const QList<qreal>& datasToAppend)
 
 void SingleChannelController::loadInitialDatas()
 {
+    if(mGenerator == nullptr)
+        return;
+
     // Bind the new row with data generator
-    QObject::connect(mGenerator, &DataGenerator::dataLoadFinished, this, &SingleChannelController::onDataLoadedArrived);
+    QObject::connect(mGenerator, &DataGenerator::dataLoaded, this, &SingleChannelController::onDataLoadedArrived);
 
     mLoaderType = mDisplayingDataCount > MAXIMUM_RECTANGLE_DISPLAYING_DATA_COUNT ? PointSet : Rectangle;
     emit loaderTypeChanged();
 
     startLoading( mTotalRange );
-    mBarSetModel->setBaseOffset(mRangeStartPos);
 }
 
 void SingleChannelController::setDataGenerator(DataGenerator* gen)
 {
-    if(mGenerator == nullptr)
+    if(mGenerator == nullptr && gen != nullptr)
     {
         mGenerator = gen;
+        mGenerator->setParent(this);
     }
 }
 
 void SingleChannelController::startLoading(size_t loadSize)
 {
+    if(mGenerator == nullptr)
+    {
+        qDebug() << "loading ended as no generator for column:" << mColumnName;
+        return;
+    }
+
     if(!mLoading)
     {
         mLoading = true;
@@ -60,7 +71,7 @@ void SingleChannelController::startLoading(size_t loadSize)
     }
 
     mPendingLoading++;
-    mGenerator->generate(mColumnName, mAmplitudes.count(), loadSize);
+    mGenerator->generate(mAmplitudes.count(), loadSize);
 }
 
 void SingleChannelController::move(int count, bool forward)
@@ -153,10 +164,11 @@ void SingleChannelController::rebase()
     }
 }
 
-void SingleChannelController::onDataLoadedArrived(const QString& columnName, const QVariant& data)
+void SingleChannelController::onDataLoadedArrived(const QVariant& data)
 {
-    if(columnName != mColumnName)
+    if(mPendingLoading == 0)
     {
+        qDebug() << "Do not have pending loading for:" << mColumnName;
         return;
     }
 

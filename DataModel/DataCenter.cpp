@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <windows.h>
 
-static DataCenter* localGlobalDataCenter = nullptr;
+static ExcelDataCenter* localGlobalDataCenter = nullptr;
 
 static QString indexToColumnLabel(int index)
 {
@@ -19,42 +19,61 @@ static QString indexToColumnLabel(int index)
     return columnName;
 }
 
-ExcelDataGenerator::ExcelDataGenerator(int rowCount, QObject* parent)
-    : DataGenerator(parent)
+////////////////////////////////////////////////////////////////////////////
+DataGenerator::DataGenerator(const QString& valueColumn, QObject* parent)
+    : QObject(parent)
+    , mValue(valueColumn)
+{
+}
+
+void DataGenerator::generate(size_t from, size_t number)
+{
+    if(mDataCenter)
+    {
+        mDataCenter->generate(mValue, from, number);
+    }
+}
+
+void DataGenerator::onDataLoadFinished(const QString& columnName, const QVariant& value)
+{
+    if(columnName == mValue)
+    {
+        emit dataLoaded(value);
+    }
+}
+
+size_t DataGenerator::getBackEndDataSize() const
+{
+    return mDataCenter->getBackEndDataSize();
+}
+/////////////////////////////////////////////////////////////////////////////////////
+ExcelDataCenter::ExcelDataCenter(int rowCount, const QString& fileName, QObject* parent)
+    : WorkerThread(parent)
     , mRowCount(rowCount)
+    , mFileName(fileName)
 {
-//    mExcel = new QAxObject("Excel.Application");
-
-//    QAxObject* workBooks = mExcel->querySubObject("WorkBooks");
-//    mWorkBook = workBooks->querySubObject("Open(QString&)", "D:\\QuickPerf\\spc_0_0_by_cycle_range.xlsx");
-
-//    QAxObject* workSheets = mWorkBook->querySubObject("WorkSheets");
-//    mWorkSheet = workSheets->querySubObject("Item(int)", 1);
-
-//    QAxObject* usedRange = mWorkSheet->querySubObject("UsedRange");
-//    QAxObject * rows = usedRange->querySubObject("Rows");
-//    mRowCount = rows->property("Count").toInt() - 1;
+    localGlobalDataCenter = this;
 }
 
-ExcelDataGenerator::~ExcelDataGenerator()
+ExcelDataCenter::~ExcelDataCenter()
 {
-    DataGenerator::exit();
+    WorkerThread::exit();
 }
 
-size_t ExcelDataGenerator::getBackEndDataSize() const
+size_t ExcelDataCenter::getBackEndDataSize() const
 {
     return mRowCount;
 }
 
-QVariant ExcelDataGenerator::kernelFunc(const QString& column, size_t from, size_t number)
+QVariant ExcelDataCenter::kernelFunc(const QString& column, size_t from, size_t number)
 {
     if(mExcel == nullptr)
     {
-        //CoInitializeEx(NULL, COINIT_MULTITHREADED);
+        CoInitializeEx(NULL, COINIT_MULTITHREADED);
         mExcel = new QAxObject("Excel.Application");
 
         QAxObject* workBooks = mExcel->querySubObject("WorkBooks");
-        mWorkBook = workBooks->querySubObject("Open(QString&)", "D:\\QuickPerf\\spc_0_0_by_cycle_range.xlsx");
+        mWorkBook = workBooks->querySubObject("Open(QString&)", mFileName);
 
         QAxObject* workSheets = mWorkBook->querySubObject("WorkSheets");
         mWorkSheet = workSheets->querySubObject("Item(int)", 1);
@@ -94,86 +113,18 @@ QVariant ExcelDataGenerator::kernelFunc(const QString& column, size_t from, size
     return QVariant::fromValue(res);
 }
 
-void ExcelDataGenerator::onThreadFinished()
+void ExcelDataCenter::onThreadFinished()
 {
     mWorkBook->dynamicCall("Close()");
     mExcel->dynamicCall("Quit()");
     delete mExcel;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-DataCenter::DataCenter(const QString& fileName, QObject* parent)
-    : QObject(parent)
-    , mFileName(fileName)
+DataGenerator* ExcelDataCenter::creatDataGenerator(const QString& valueColumn)
 {
-    localGlobalDataCenter = this;
-}
+    DataGenerator* pGen = new DataGenerator(valueColumn, localGlobalDataCenter);
+    pGen->mDataCenter = localGlobalDataCenter;
+    connect(localGlobalDataCenter, &ExcelDataCenter::dataLoadFinished, pGen, &DataGenerator::onDataLoadFinished);
 
-DataCenter::~DataCenter()
-{
-    qDebug() << "Data Center deletion";
-    mWorkBook->dynamicCall("Close()");
-    mExcel->dynamicCall("Quit()");
-    localGlobalDataCenter = nullptr;
-
-    delete mExcel;
-}
-
-void DataCenter::initialize()
-{
-    if(!mFileName.isEmpty())
-    {
-        localGlobalDataCenter = this;
-
-        mExcel = new QAxObject("Excel.Application");
-
-        QAxObject* work_books = mExcel->querySubObject("WorkBooks");
-        mWorkBook = work_books->querySubObject("Open(QString&)", mFileName);
-
-        QAxObject* work_sheets = mWorkBook->querySubObject("WorkSheets");
-
-        mWorkSheet = work_sheets->querySubObject("Item(int)", 1);
-        mUsedRange = mWorkSheet->querySubObject("UsedRange");
-
-        QAxObject * rows = mUsedRange->querySubObject("Rows");
-        mRowNumber = rows->property("Count").toInt() - 1;
-
-        QAxObject* range = mWorkSheet->querySubObject("Range(QVariant, QVariant)", "B1", "BHI1");
-
-        QVariant var = range->dynamicCall("Value");
-        QVariantList row = var.toList();
-
-        if(row.count() <= 0)
-        {
-            qDebug() << "Title not exists";
-            return;
-        }
-
-        for(auto _one : row[0].toList())
-        {
-            mTitleList.append(_one.toString());
-        }
-    }
-}
-
-DataGenerator* DataCenter::creatDataGenerator(const QString& columnName)
-{
-//    if(localGlobalDataCenter)
-//    {
-//        auto allTitles = localGlobalDataCenter->mTitleList;
-//        auto index = allTitles.indexOf(columnName);
-
-//        if(index == -1)
-//        {
-//            qDebug() << "Invalid columnName!";
-//            return nullptr;
-//        }
-
-//        return new ExcelDataGenerator(
-//                    indexToColumnLabel(index + 2),
-//                    localGlobalDataCenter->mRowNumber);
-//    }
-//    return nullptr;
-    static ExcelDataGenerator excelGen(localGlobalDataCenter->mRowNumber, localGlobalDataCenter);
-    return &excelGen;
+    return pGen;
 }

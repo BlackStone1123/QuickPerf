@@ -13,16 +13,15 @@ struct GenParam
     size_t count {0};
 };
 
-class DataGenerator : public QThread
+class WorkerThread : public QThread
 {
     Q_OBJECT
 
 public:
-    DataGenerator(QObject* parent = nullptr);
-    virtual ~DataGenerator();
+    WorkerThread(QObject* parent = nullptr);
+    virtual ~WorkerThread();
 
-    virtual QVariant generate(const QString& column, size_t from, size_t number, bool immediate = false);
-    virtual size_t getBackEndDataSize() const = 0;
+    virtual QVariant generate(const QString& column, size_t from, size_t number);
 
 signals:
     void dataLoadFinished(const QString& columnName, const QVariant&);
@@ -42,16 +41,16 @@ private:
     bool mAbort{false};
 };
 
-class RandomDataGenerator: public DataGenerator
-{
-public:
-    RandomDataGenerator(QObject* parent);
-    virtual ~RandomDataGenerator();
-    virtual size_t getBackEndDataSize() const override { return 20000; }
+//class RandomDataGenerator: public DataGenerator
+//{
+//public:
+//    RandomDataGenerator(QObject* parent);
+//    virtual ~RandomDataGenerator();
+//    virtual size_t getBackEndDataSize() const override { return 20000; }
 
-private:
-    virtual QVariant kernelFunc(const QString& column, size_t from, size_t number) override;
+//private:
+//    virtual QVariant kernelFunc(const QString& column, size_t from, size_t number) override;
 
-private:
-    std::default_random_engine mRandomEng;
-};
+//private:
+//    std::default_random_engine mRandomEng;
+//};

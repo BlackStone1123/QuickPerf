@@ -55,7 +55,7 @@ signals:
     void displayingDataCountChanged();
 
 private:
-    void onDataLoadedArrived(const QString& columnName, const QVariant& data);
+    void onDataLoadedArrived(const QVariant& data);
     void appendDatas(const QList<qreal>&);
     void fetchMoreData(size_t count);
     void updateModel();
@@ -70,7 +70,7 @@ private:
 
     bool mLoading {false};
     int mPendingLoading{0};
-    LoaderType mLoaderType {Rectangle};
+    LoaderType mLoaderType {PointSet};
 
     size_t mRangeStartPos {0};
     size_t mDisplayingDataCount {INITIAL_DISPLAYING_DATA_RANGE};

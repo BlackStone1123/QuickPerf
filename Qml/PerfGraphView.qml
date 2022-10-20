@@ -107,20 +107,24 @@ FocusScope{
                 BarSetChannel{
                     id: barset
 
-                    __dataGenerator: graphController.getDataGenerator(currentRow.currentData.value)
-                    __barColor: currentRow.depth == 0 ? "red" : currentRow.depth == 1 ? "green" : currentRow.depth ==  2 ? "blue" : "black"
+                    dataGenerator: graphController.getDataGenerator(currentRow.currentData.value)
+                    barColor: currentRow.depth == 0 ? "red" : currentRow.depth == 1 ? "green" : currentRow.depth ==  2 ? "blue" : "black"
 
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
                     width: rightArea.width
+                    visible: !currentRow.hasChildren ||(!currentRow.expanded && currentRow.hasChildren)
 
                     Component.onCompleted: {
-                        barset.controller.setColumnName(currentRow.currentData.value);
-                        graphController.registerSingleChannelController(barset.controller);
+                        graphController.registerSingleChannelController(currentRow.currentData.key, barset.controller);
                         if(firstChannelController === null)
                         {
                             firstChannelController = barset.controller;
                         }
+                    }
+
+                    Component.onDestruction: {
+                        graphController.unRegisterSingleChannelController(currentRow.currentData.key);
                     }
                 }
             }
@@ -166,9 +170,9 @@ FocusScope{
 
                     Layout.fillWidth: true
 
-                    onSliderBeginIndexChanged: {
-                        graphController.onSliderPositionChanged(position)
-                    }
+//                    onSliderBeginIndexChanged: {
+//                        graphController.onSliderPositionChanged(position)
+//                    }
                 }
 
                 Item{

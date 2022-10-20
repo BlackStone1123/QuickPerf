@@ -18,45 +18,39 @@
 
 namespace  {
 
-    void loadValue(const QJsonValue& value, TreeItem* parent)
+    QString loadValue(const QJsonValue& value, TreeItem* parent)
     {
         if(value.isObject()) {
             auto object = value.toObject();
             for(auto it=object.begin(); it!=object.end(); ++it){
                 JsonEntry entry;
                 entry.setKey(it.key());
-                entry.setType(QJsonValue::Object);
-                if(it.value().isArray() || it.value().isObject()){
-                    auto child = new TreeItem(QVariant::fromValue(entry));
+                if(it.value().isObject()){
+                    entry.setType(QJsonValue::Object);
+                    auto child = new TreeItem();
+                    entry.setValue(loadValue(it.value(), child));
+                    child->setData(QVariant::fromValue(entry));
                     parent->appendChild(child);
-                    loadValue(it.value(), child);
                 }
                 else {
+                    if(it.key() == "top")
+                    {
+                        return it.value().toString();
+                    }
+                    entry.setType(QJsonValue::String);
                     entry.setValue(it.value().toVariant());
                     auto child = new TreeItem(QVariant::fromValue(entry));
                     parent->appendChild(child);
                 }
             }
         }
-        else if(value.isArray()){
-            int index = 0;
-            auto array = value.toArray();
-            for(auto&& element: array){
-                JsonEntry entry;
-                entry.setKey("[" + QString::number(index) + "]");
-                entry.setType(QJsonValue::Array);
-                auto child = new TreeItem(QVariant::fromValue(entry));
-                parent->appendChild(child);
-                loadValue(element, child);
-                ++index;
-            }
-        }
+        return QString();
     }
 
     void populateTree(TreeItem* rootItem)
     {
         QFile jsonFile;
-        jsonFile.setFileName("D:\\QuickPerf\\pfa_test_config.json");
+        jsonFile.setFileName("D:\\Code\\QuickTest\\pfa_test_config.json");
 
         if(!jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)){
             qCritical() << "error: json file cannot be open";
@@ -86,26 +80,45 @@ PerfGraphViewController::~PerfGraphViewController()
     std::cout << "PerfGraphViewController deletion" << std::endl;
 }
 
-void PerfGraphViewController::registerSingleChannelController(SingleChannelController* controller)
+void PerfGraphViewController::registerSingleChannelController(const QString& columnName, SingleChannelController* controller)
 {
-    controller->loadInitialDatas();
-    mControllerList.push_back(controller);
+    if(!columnName.isEmpty())
+    {
+        controller->setColumnName(columnName);
+        controller->loadInitialDatas();
+
+        if(mControllerList.find(columnName) == mControllerList.end())
+        {
+            mControllerList[columnName] = controller;
+        }
+        else {
+            qDebug() << "the column name is duplicated :" << columnName;
+        }
+    }
 }
 
-DataGenerator* PerfGraphViewController::getDataGenerator(QString key)
+void PerfGraphViewController::unRegisterSingleChannelController(const QString& columnName)
 {
-    //return new RandomDataGenerator(this);
+    auto itr = mControllerList.find(columnName);
+    if(itr != mControllerList.end())
+    {
+        mControllerList.erase(itr);
+    }
+}
 
-    DataGenerator* pGenerator = DataCenter::creatDataGenerator(key);
+DataGenerator* PerfGraphViewController::getDataGenerator(const QString& value)
+{
+    if(value.isEmpty())
+        return nullptr;
+
+    DataGenerator* pGenerator = ExcelDataCenter::creatDataGenerator(value);
 
     if(pGenerator)
     {
-        //pGenerator->setParent(this);
         return pGenerator;
     }
-    else{
-        return new RandomDataGenerator(this);
-    }
+
+    return  nullptr;
 }
 
 void PerfGraphViewController::onWheelScaled(const QPointF& point)
@@ -113,7 +126,7 @@ void PerfGraphViewController::onWheelScaled(const QPointF& point)
     if(mControllerList.isEmpty())
         return;
 
-    auto singleController = mControllerList.front();
+    auto singleController = mControllerList.first();
     int currentDisplayingCount = singleController->getDisplayingDataCount();
 
     bool zoomIn = point.y() > 0;
@@ -125,9 +138,6 @@ void PerfGraphViewController::onWheelScaled(const QPointF& point)
     {
         for(auto controller: mControllerList)
         {
-            if(controller == nullptr)
-                continue;
-
             controller->zoomTo(scaledNumber);
         }
     }
@@ -142,7 +152,7 @@ void PerfGraphViewController::onLeftKeyPressed()
     if(mControllerList.isEmpty())
         return;
 
-    auto singleController = mControllerList.front();
+    auto singleController = mControllerList.first();
     int currentDisplayingCount = singleController->getDisplayingDataCount();
 
     size_t dataStride = singleController->requestForMoveStride(currentDisplayingCount / 5, false);
@@ -155,9 +165,6 @@ void PerfGraphViewController::onLeftKeyPressed()
 
     for (auto controller: mControllerList)
     {
-        if(controller == nullptr)
-            continue;
-
         controller->move(dataStride, false);
     }
 }
@@ -167,7 +174,7 @@ void PerfGraphViewController::onRightKeyPressed()
     if(mControllerList.isEmpty())
         return;
 
-    auto singleController = mControllerList.front();
+    auto singleController = mControllerList.first();
     int currentDisplayingCount = singleController->getDisplayingDataCount();
 
     size_t dataStride = singleController->requestForMoveStride(currentDisplayingCount / 5, true);
@@ -178,22 +185,16 @@ void PerfGraphViewController::onRightKeyPressed()
         return;
     }
 
-    for (auto controller: mControllerList)
+    for (auto& controller: mControllerList)
     {
-        if(controller == nullptr)
-            continue;
-
         controller->move(dataStride, true);
     }
 }
 
 void PerfGraphViewController::onSliderPositionChanged(int position)
 {
-    for (auto controller: mControllerList)
+    for (auto& controller: mControllerList)
     {
-        if(controller == nullptr)
-            continue;
-
         controller->moveTo(position);
     }
 }

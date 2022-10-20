@@ -13,8 +13,8 @@ Item{
     readonly property real __barWidth: root.width / channelController.displayingDataCount
     readonly property SingleChannelController controller: channelController
 
-    property var __dataGenerator: null
-    property var __barColor: "red"
+    property alias dataGenerator: channelController.dataGenerator
+    property var barColor: "red"
 
     clip: true
 
@@ -64,8 +64,6 @@ Item{
 
     SingleChannelController{
         id: channelController
-
-        dataGenerator: __dataGenerator
     }
 
     Loader{
@@ -79,7 +77,7 @@ Item{
             leftMargin: __barWidth * (channelController.barSetModel.rectBaseOffset - channelController.rangeStartPos)
         }
 
-        //active: channelController.loaderType === SingleChannelController.Rectangle
+        active: visible
         visible: channelController.loaderType === SingleChannelController.Rectangle
 
         sourceComponent: Component{
@@ -99,7 +97,7 @@ Item{
                         anchors.bottom: parent.bottom
                         implicitWidth: __barWidth
                         implicitHeight: model.Amplitude * root.height / 100
-                        color: hoverHandler.hovered ? Qt.darker(__barColor, 2.0) : __barColor
+                        color: hoverHandler.hovered ? Qt.darker(barColor, 2.0) : barColor
 
                         HoverHandler{
                             id: hoverHandler
@@ -145,7 +143,7 @@ Item{
 
                 stride: __barWidth
                 pointSetModel: channelController.bundle
-                lineColor: __barColor
+                lineColor: barColor
                 startPos: channelController.rangeStartPos
                 numPoints: Math.min(channelController.displayingDataCount, pointSetModel.length - startPos)
             }

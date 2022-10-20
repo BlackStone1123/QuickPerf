@@ -4,7 +4,7 @@
 
 static unsigned long rseed = 10;
 
-DataGenerator::DataGenerator(QObject* parent)
+WorkerThread::WorkerThread(QObject* parent)
     : QThread(parent)
 {
     QObject::connect(this, &QThread::finished, this, [](){
@@ -12,15 +12,12 @@ DataGenerator::DataGenerator(QObject* parent)
     });
 }
 
-DataGenerator::~DataGenerator()
+WorkerThread::~WorkerThread()
 {
 }
 
-QVariant DataGenerator::generate(const QString& columnName, size_t from, size_t number, bool immediate)
+QVariant WorkerThread::generate(const QString& columnName, size_t from, size_t number)
 {
-    if(immediate)
-        return kernelFunc(columnName, from, number);
-
     if(!isRunning())
     {
         mGenReq.push_back({columnName, from, number});
@@ -35,7 +32,7 @@ QVariant DataGenerator::generate(const QString& columnName, size_t from, size_t 
     return {};
 }
 
-void DataGenerator::run()
+void WorkerThread::run()
 {
     size_t currentBatchNum = 0;
     size_t currentBatchFrom = 0;
@@ -75,7 +72,7 @@ void DataGenerator::run()
     onThreadFinished();
 }
 
-void DataGenerator::exit()
+void WorkerThread::exit()
 {
     mMutex.lock();
     mAbort = true;
@@ -86,30 +83,30 @@ void DataGenerator::exit()
 }
 
 ////////////////////////////////////////////////////////////////////
-QVariant RandomDataGenerator::kernelFunc(const QString& column, size_t from, size_t number)
-{
-    QList<qreal> res;
+//QVariant RandomDataGenerator::kernelFunc(const QString& column, size_t from, size_t number)
+//{
+//    QList<qreal> res;
 
-    std::normal_distribution<float> distribution(40.0, 10.0);
+//    std::normal_distribution<float> distribution(40.0, 10.0);
 
-    for (size_t j = 0; j < number; j++)
-    {
-        res << distribution(mRandomEng);
-    }
+//    for (size_t j = 0; j < number; j++)
+//    {
+//        res << distribution(mRandomEng);
+//    }
 
-    return QVariant::fromValue(res);
-}
+//    return QVariant::fromValue(res);
+//}
 
-RandomDataGenerator::~RandomDataGenerator()
-{
-    DataGenerator::exit();
-    std::cout << "random data gen deletion!" << std::endl;
-}
+//RandomDataGenerator::~RandomDataGenerator()
+//{
+//    DataGenerator::exit();
+//    std::cout << "random data gen deletion!" << std::endl;
+//}
 
-RandomDataGenerator::RandomDataGenerator(QObject* parent)
-    : DataGenerator(parent)
-{
-    mRandomEng.seed( rseed );
-    rseed *= 100;
-}
+//RandomDataGenerator::RandomDataGenerator(QObject* parent)
+//    : DataGenerator(parent)
+//{
+//    mRandomEng.seed( rseed );
+//    rseed *= 100;
+//}
 ///////////////////////////////////////////////////////////////

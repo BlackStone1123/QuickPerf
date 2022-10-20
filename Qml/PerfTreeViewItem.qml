@@ -158,6 +158,7 @@ Item {
                      height: rowHeight
 
                      sourceComponent: contentItem
+                     active: visible
 
                      Connections {
                         target: root.model

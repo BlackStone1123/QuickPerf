@@ -5,12 +5,37 @@
 #include "DataGenerator.h"
 
 class QAxObject;
-class ExcelDataGenerator: public DataGenerator
+class ExcelDataCenter;
+
+class DataGenerator: public QObject
 {
+    Q_OBJECT
 public:
-    ExcelDataGenerator(int rowCount, QObject* parent = nullptr);
-    virtual ~ExcelDataGenerator();
-    virtual size_t getBackEndDataSize() const override;
+    friend class ExcelDataCenter;
+    DataGenerator(const QString& valueColumn, QObject* parent = nullptr);
+    void generate(size_t from, size_t number);
+    size_t getBackEndDataSize() const;
+
+signals:
+    void dataLoaded(const QVariant&);
+
+private slots:
+    void onDataLoadFinished(const QString& columnName, const QVariant&);
+
+private:
+    QString mValue;
+    ExcelDataCenter* mDataCenter{nullptr};
+};
+
+class ExcelDataCenter: public WorkerThread
+{
+    Q_OBJECT
+public:
+    ExcelDataCenter(int rowCount, const QString& fileName, QObject* parent = nullptr);
+    virtual ~ExcelDataCenter();
+    size_t getBackEndDataSize() const;
+
+    static DataGenerator* creatDataGenerator(const QString& valueColumn);
 
 private:
     virtual QVariant kernelFunc(const QString& column, size_t from, size_t number) override;
@@ -22,27 +47,6 @@ private:
     QAxObject* mWorkBook {nullptr};
 
     int mRowCount{10000};
+    QString  mFileName;
     QList<QString> mTitleList;
-};
-
-class DataCenter: public QObject
-{
-    Q_OBJECT
-public:
-    DataCenter(const QString& fileName, QObject* parent = nullptr);
-    virtual ~DataCenter();
-
-    void initialize();
-
-    static DataGenerator* creatDataGenerator(const QString& columnName);
-
-private:
-    QString mFileName;
-    QList<QString> mTitleList;
-
-    QAxObject* mUsedRange{nullptr};
-    QAxObject* mWorkSheet{nullptr};
-    QAxObject* mWorkBook{nullptr};
-    QAxObject* mExcel {nullptr};
-    int mRowNumber{0};
 };

@@ -9,7 +9,7 @@
 #include "PerfListViewController.h"
 #include "../DataModel/RectangleViewModel.h"
 #include "../DataModel/ChannelDataModel.h"
-#include "../DataModel/DataGenerator.h"
+#include "../DataModel/DataCenter.h"
 #include "../DataModel/TreeModel.h"
 
 static const std::string title = "QuickPerf";

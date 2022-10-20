@@ -1,5 +1,6 @@
 #pragma once
 #include "../CommonDefines.h"
+#include <QMap>
 
 class ChannelDataModel;
 class TreeModel;
@@ -11,13 +12,14 @@ class PerfGraphViewController : public QObject
     Q_PROPERTY(TreeModel* graphModel MEMBER mDataModel NOTIFY modelChanged)
 
 public:
-    using ControllerList = QList<QPointer<SingleChannelController>>;
+    using ControllerList = QMap<QString, QPointer<SingleChannelController>>;
 
     PerfGraphViewController(QObject* parent = nullptr);
     virtual ~PerfGraphViewController();
 
-    Q_INVOKABLE void registerSingleChannelController(SingleChannelController*);
-    Q_INVOKABLE DataGenerator* getDataGenerator(QString key);
+    Q_INVOKABLE void registerSingleChannelController(const QString& columnName, SingleChannelController*);
+    Q_INVOKABLE void unRegisterSingleChannelController(const QString& columnName);
+    Q_INVOKABLE DataGenerator* getDataGenerator(const QString& value);
 
 signals:
     void modelChanged();

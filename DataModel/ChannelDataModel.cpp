@@ -1,7 +1,7 @@
 #include "ChannelDataModel.h"
 #include <iostream>
 #include <cmath>
-#include "DataGenerator.h"
+#include "DataCenter.h"
 
 ChannelDataModel::ChannelDataModel(GeneratorList generators, QObject* parent)
     : QAbstractListModel(parent)
