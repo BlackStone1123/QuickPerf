@@ -127,6 +127,17 @@ FocusScope{
                         graphController.unRegisterSingleChannelController(currentRow.currentData.key);
                     }
                 }
+
+                Rectangle{
+                    id: placeHolder
+
+                    color: "black"
+
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: rightArea.width
+                    visible: !barset.visible
+                }
             }
         }
 
