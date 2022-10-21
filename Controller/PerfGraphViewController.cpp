@@ -88,12 +88,12 @@ void PerfGraphViewController::registerSingleChannelController(const QString& key
         {
             mControllerList[key] = controller;
             controller->setKey(key);
-            controller->loadInitialDatas(mControllerList.isEmpty() ? -1 : mControllerList.first()->getTotalRange());
+            controller->loadInitialDatas(mControllerList.isEmpty() ? -1 : getTopController()->getTotalRange());
 
             if(!mControllerList.isEmpty())
             {
-                controller->moveTo(mControllerList.first()->getRangeStartPosition());
-                controller->zoomTo(mControllerList.first()->getDisplayingDataCount());
+                controller->moveTo(getTopController()->getRangeStartPosition());
+                controller->zoomTo(getTopController()->getDisplayingDataCount());
             }
         }
         else {
@@ -107,6 +107,10 @@ void PerfGraphViewController::unRegisterSingleChannelController(const QString& c
     auto itr = mControllerList.find(columnName);
     if(itr != mControllerList.end())
     {
+        if(itr.value() == mTopController)
+        {
+            mTopController = nullptr;
+        }
         mControllerList.erase(itr);
     }
 }
@@ -131,7 +135,7 @@ void PerfGraphViewController::onWheelScaled(const QPointF& point)
     if(mControllerList.isEmpty())
         return;
 
-    auto singleController = mControllerList.first();
+    auto singleController = getTopController();
     int currentDisplayingCount = singleController->getDisplayingDataCount();
 
     bool zoomIn = point.y() > 0;
@@ -157,7 +161,7 @@ void PerfGraphViewController::onLeftKeyPressed()
     if(mControllerList.isEmpty())
         return;
 
-    auto singleController = mControllerList.first();
+    auto singleController = getTopController();
     int currentDisplayingCount = singleController->getDisplayingDataCount();
 
     size_t dataStride = singleController->requestForMoveStride(currentDisplayingCount / 5, false);
@@ -179,7 +183,7 @@ void PerfGraphViewController::onRightKeyPressed()
     if(mControllerList.isEmpty())
         return;
 
-    auto singleController = mControllerList.first();
+    auto singleController = getTopController();
     int currentDisplayingCount = singleController->getDisplayingDataCount();
 
     size_t dataStride = singleController->requestForMoveStride(currentDisplayingCount / 5, true);
@@ -207,4 +211,20 @@ void PerfGraphViewController::onSliderPositionChanged(int position)
 void PerfGraphViewController::onSliderRangeChanged(int range)
 {
 
+}
+
+SingleChannelController* PerfGraphViewController::getTopController()
+{
+    if(mTopController)
+        return mTopController;
+
+    for(auto& controller: mControllerList)
+    {
+        if(controller->getDataGenerator() != nullptr)
+        {
+            mTopController = controller;
+            break;
+        }
+    }
+    return mTopController;
 }

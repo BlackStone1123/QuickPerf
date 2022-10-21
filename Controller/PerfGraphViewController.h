@@ -33,6 +33,9 @@ public slots:
     void onSliderRangeChanged(int range);
 
 private:
+    SingleChannelController* getTopController();
+
+    SingleChannelController* mTopController {nullptr};
     //QPointer<ChannelDataModel> mDataModel;
     QPointer<TreeModel> mDataModel;
     ControllerList mControllerList;

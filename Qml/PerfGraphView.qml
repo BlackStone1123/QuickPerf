@@ -16,7 +16,7 @@ FocusScope{
     }
 
     Row{
-        id: backGround
+        id: background
 
         anchors.fill: parent
         spacing: handleComp.width
@@ -79,64 +79,70 @@ FocusScope{
 
             model: graphController.graphModel
 
-            contentItem: Row{
-                id: contentRow
-                spacing: handleComp.width
-
-                Rectangle{
-                    id: leftComp
-
-                    color: "transparent"
-
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    width: leftArea.width - 15 - graphTreeView.rowPadding * currentRow.depth
-
-                    Text {
-                        anchors.verticalCenter: leftComp.verticalCenter
-                        anchors.left: leftComp.left
-                        anchors.right: leftComp.right
-
-                        text: currentRow.currentData.key
-                        font.pixelSize: 12
-                        font.family: "Times"
-                        elide: Text.ElideRight
-                    }
-                }
-
-                BarSetChannel{
-                    id: barset
-
-                    dataGenerator: graphController.getDataGenerator(currentRow.currentData.value)
-                    barColor: currentRow.depth == 0 ? "red" : currentRow.depth == 1 ? "green" : currentRow.depth ==  2 ? "blue" : "black"
-
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    width: rightArea.width
-                    visible: !currentRow.hasChildren ||(!currentRow.expanded && currentRow.hasChildren)
-
-                    Component.onCompleted: {
-                        graphController.registerSingleChannelController(currentRow.currentData.key, barset.controller);
-                        if(firstChannelController === null)
-                        {
-                            firstChannelController = barset.controller;
-                        }
-                    }
-
-                    Component.onDestruction: {
-                        graphController.unRegisterSingleChannelController(currentRow.currentData.key);
-                    }
-                }
+            contentItem: Item {
+                id: content
 
                 Rectangle{
                     id: placeHolder
 
-                    color: "black"
+                    color: barset.visible ? "transparent" : "black"
 
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
-                    width: rightArea.width
-                    visible: !barset.visible
+                    width: splitView.width
+                    x: - graphTreeView.rowPadding * currentRow.depth - 15
+                }
+
+                Row{
+                    id: contentRow
+                    anchors.fill: parent
+                    spacing: handleComp.width
+
+                    Rectangle{
+                        id: leftComp
+
+                        color: "transparent"
+
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: leftArea.width - 15 - graphTreeView.rowPadding * currentRow.depth
+
+                        Text {
+                            anchors.verticalCenter: leftComp.verticalCenter
+                            anchors.left: leftComp.left
+                            anchors.right: leftComp.right
+
+                            text: currentRow.currentData.key
+                            font.pixelSize: 12
+                            font.family: "Times"
+                            color: barset.visible ? "black" : "white"
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    BarSetChannel{
+                        id: barset
+
+                        dataGenerator: graphController.getDataGenerator(currentRow.currentData.value)
+                        barColor: currentRow.depth == 0 ? "red" : currentRow.depth == 1 ? "green" : currentRow.depth ==  2 ? "blue" : "black"
+
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: rightArea.width
+                        visible: !currentRow.hasChildren ||(!currentRow.expanded && currentRow.hasChildren)
+
+                        Component.onCompleted: {
+                            graphController.registerSingleChannelController(currentRow.currentData.key, barset.controller);
+                            if(firstChannelController === null)
+                            {
+                                firstChannelController = barset.controller;
+                            }
+                        }
+
+                        Component.onDestruction: {
+                            graphController.unRegisterSingleChannelController(currentRow.currentData.key);
+                        }
+                    }
                 }
             }
         }
@@ -175,15 +181,10 @@ FocusScope{
                 AxisItem{
                     id: axisItem
 
-                    beginIndex: firstChannelController.rangeStartPos
                     displayingCount: firstChannelController.displayingDataCount
                     totalCount: firstChannelController.getTotalDataCount()
 
                     Layout.fillWidth: true
-
-//                    onSliderBeginIndexChanged: {
-//                        graphController.onSliderPositionChanged(position)
-//                    }
                 }
 
                 Item{
@@ -209,6 +210,22 @@ FocusScope{
                             mouse.accepted = false
                         }
                     }
+                }
+
+                Connections{
+                    target: axisItem
+                    enabled: axisItem.dragging
+
+                    onSliderBeginIndexChanged:{
+                        graphController.onSliderPositionChanged(position)
+                    }
+                }
+
+                Binding {
+                    target: axisItem;
+                    property: "beginIndex";
+                    value: firstChannelController.rangeStartPos;
+                    when: !axisItem.dragging
                 }
             }
         }

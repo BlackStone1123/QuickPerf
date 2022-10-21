@@ -8,6 +8,7 @@ Rectangle {
     property int beginIndex: 0
     property real totalCount: 2000
     property real displayingCount: 100
+    property bool dragging: sliderArea.drag.active
 
     signal sliderBeginIndexChanged(int position)
     signal sliderRangeChanged(int range)
