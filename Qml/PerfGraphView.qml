@@ -7,7 +7,6 @@ FocusScope{
     id: root
 
     //property int currentChannelIndex: graphListView.currentIndex
-    property SingleChannelController firstChannelController: null
     property var handleComp: null
     property var handleWidth: 1
 
@@ -133,10 +132,6 @@ FocusScope{
 
                         Component.onCompleted: {
                             graphController.registerSingleChannelController(currentRow.currentData.key, barset.controller);
-                            if(firstChannelController === null)
-                            {
-                                firstChannelController = barset.controller;
-                            }
                         }
 
                         Component.onDestruction: {
@@ -180,6 +175,8 @@ FocusScope{
 
                 AxisItem{
                     id: axisItem
+
+                    property SingleChannelController firstChannelController: graphController.topController
 
                     totalCount: firstChannelController.getTotalDataCount()
                     displayingCount: firstChannelController.displayingDataCount
@@ -240,20 +237,18 @@ FocusScope{
         }
     }
 
-//    GraphBorder{
-//        id: border
-//        visible: root.activeFocus
+    GraphBorder{
+        id: border
+        visible: root.activeFocus
 
-//        border.color: firstChannelController.loaderType === SingleChannelController.Rectangle ? "cyan" : "black"
-//    }
+        border.color: "black"
+    }
 
     Keys.onPressed: {
         if (event.key === Qt.Key_A) {
-            console.log("move left");
             graphController.onLeftKeyPressed()
         }
         else if(event.key === Qt.Key_D){
-            console.log("move right");
             graphController.onRightKeyPressed()
         }
         else if(event.key === Qt.Key_W){

@@ -1,5 +1,5 @@
 #include "RectangleViewModel.h"
-#include <iostream>
+#include <QDebug>
 
 RectangleViewModel::RectangleViewModel(const QList<qreal>& datas, QObject* parent)
     : QAbstractListModel(parent)
@@ -9,7 +9,7 @@ RectangleViewModel::RectangleViewModel(const QList<qreal>& datas, QObject* paren
 
 RectangleViewModel::~RectangleViewModel()
 {
-    std::cout << "RectangleViewModel deletion" << std::endl;
+    qDebug() << "RectangleViewModel deletion";
 }
 
 QHash<int,QByteArray> RectangleViewModel::roleNames() const
@@ -42,6 +42,8 @@ int RectangleViewModel::rowCount(const QModelIndex & parent) const
 void RectangleViewModel::setBaseOffset(int baseOffset)
 {
     mBaseOffset = baseOffset;
+    qDebug() << "rect base offset: " << mBaseOffset;
+
     emit rectBaseOffsetChanged();
     emit dataChanged(index(0), index(MAXIMUM_RECTANGLE_DATA_COUNT - 1));
 }

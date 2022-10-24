@@ -1,5 +1,5 @@
 #include "ChannelDataModel.h"
-#include <iostream>
+#include <QDebug>
 #include <cmath>
 #include "DataCenter.h"
 
@@ -15,7 +15,7 @@ ChannelDataModel::ChannelDataModel(GeneratorList generators, QObject* parent)
 
 ChannelDataModel::~ChannelDataModel()
 {
-    std::cout << "ChannelDataModel deletion" << std::endl;
+    qDebug() << "ChannelDataModel deletion";
 }
 
 QHash<int,QByteArray> ChannelDataModel::roleNames() const 
@@ -51,7 +51,7 @@ int ChannelDataModel::rowCount(const QModelIndex & parent) const
 
 void ChannelDataModel::addChannelDataBefore(size_t index, QPointer<DataGenerator> generator)
 {
-    std::cout<< "begin insert row at position:" << index << std::endl;
+    qDebug()<< "begin insert row at position:" << index;
     ChannelDataRow newRow = generateChannelDataRow(index, generator);
 
     // update the model with new row

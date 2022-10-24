@@ -147,105 +147,38 @@ Rectangle {
                 State{
                     name: "dragging"
 
-                    AnchorChanges{
-                        target: viewPort
-                        anchors.left: undefined
-                        anchors.right: undefined
-                    }
+                    AnchorChanges{target: viewPort;anchors.left: undefined;anchors.right: undefined}
+                    AnchorChanges{target: leftSplitter; anchors.right: viewPort.left}
+                    AnchorChanges{target: rightSpliter;anchors.left: viewPort.right}
 
-                    AnchorChanges{
-                        target: leftSplitter
-                        anchors.right: viewPort.left
-                    }
-
-                    AnchorChanges{
-                        target: rightSpliter
-                        anchors.left: viewPort.right
-                    }
-
-                    PropertyChanges{
-                        target: leftSplitter
-                        anchors.rightMargin: -leftSplitter.width / 2
-                    }
-
-                    PropertyChanges{
-                        target: rightSpliter
-                        anchors.leftMargin: -rightSpliter.width / 2
-                    }
+                    PropertyChanges{target: leftSplitter;anchors.rightMargin: -leftSplitter.width / 2}
+                    PropertyChanges{target: rightSpliter;anchors.leftMargin: -rightSpliter.width / 2}
                     when: dragging
                 },
 
                 State{
                     name: "noDragging"
 
-                    AnchorChanges{
-                        target: viewPort
-                        anchors.left: leftSplitter.right
-                        anchors.right: rightSpliter.left
-                    }
+                    AnchorChanges{target: viewPort;anchors.left: leftSplitter.right; anchors.right: rightSpliter.left}
+                    AnchorChanges{target: leftSplitter; anchors.right: undefined}
+                    AnchorChanges{target: rightSpliter; anchors.left: undefined}
 
-                    AnchorChanges{
-                        target: leftSplitter
-                        anchors.right: undefined
-                    }
-
-                    AnchorChanges{
-                        target: rightSpliter
-                        anchors.left: undefined
-                    }
-
-                    PropertyChanges{
-                        target: leftSplitter
-                        x: beginIndex * root.width / totalCount - leftSplitter.width / 2
-                    }
-
-                    PropertyChanges{
-                        target: rightSpliter
-                        x: (root.beginIndex + root.displayingCount) * root.width / totalCount - rightSpliter.width / 2
-                    }
-
-                    PropertyChanges {
-                        target: viewPort
-                        anchors.leftMargin: -leftSplitter.width / 2
-                        anchors.rightMargin: -rightSpliter.width / 2
-                    }
+                    PropertyChanges{target: leftSplitter; x: beginIndex * root.width / totalCount - leftSplitter.width / 2}
+                    PropertyChanges{target: rightSpliter; x: (root.beginIndex + root.displayingCount) * root.width / totalCount - rightSpliter.width / 2}
+                    PropertyChanges {target: viewPort; anchors.leftMargin: -leftSplitter.width / 2; anchors.rightMargin: -rightSpliter.width / 2}
                     when: !leftSplitterDragging && !rightSplitterDragging &&　!dragging
                 },
 
                 State{
                     name: "splitterDragging"
 
-                    AnchorChanges{
-                        target: viewPort
-                        anchors.left: leftSplitter.right
-                        anchors.right: rightSpliter.left
-                    }
+                    AnchorChanges{target: viewPort;anchors.left: leftSplitter.right;anchors.right: rightSpliter.left}
+                    AnchorChanges{target: leftSplitter; anchors.right: undefined}
+                    AnchorChanges{target: rightSpliter;anchors.left: undefined}
 
-                    AnchorChanges{
-                        target: leftSplitter
-                        anchors.right: undefined
-                    }
-
-                    AnchorChanges{
-                        target: rightSpliter
-                        anchors.left: undefined
-                    }
-
-                    PropertyChanges{
-                        target: leftSplitter
-                        x: undefined
-                    }
-
-                    PropertyChanges{
-                        target: rightSpliter
-                        x: undefined
-                    }
-
-                    PropertyChanges {
-                        target: viewPort
-                        anchors.leftMargin: -leftSplitter.width / 2
-                        anchors.rightMargin: -rightSpliter.width / 2
-                    }
+                    PropertyChanges{target: leftSplitter; x: undefined}
+                    PropertyChanges{target: rightSpliter; x: undefined}
+                    PropertyChanges {target: viewPort; anchors.leftMargin: -leftSplitter.width / 2; anchors.rightMargin: -rightSpliter.width / 2}
                     when: leftSplitterDragging || rightSplitterDragging
                 }
             ]

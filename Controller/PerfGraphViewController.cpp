@@ -230,6 +230,7 @@ SingleChannelController* PerfGraphViewController::getTopController()
         if(controller->getDataGenerator() != nullptr)
         {
             mTopController = controller;
+            emit topControllerChanged();
             break;
         }
     }

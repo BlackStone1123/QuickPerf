@@ -10,6 +10,7 @@ class PerfGraphViewController : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(TreeModel* graphModel MEMBER mDataModel NOTIFY modelChanged)
+    Q_PROPERTY(SingleChannelController* topController MEMBER mTopController NOTIFY topControllerChanged)
 
 public:
     using ControllerList = QMap<QString, QPointer<SingleChannelController>>;
@@ -20,10 +21,12 @@ public:
     Q_INVOKABLE void registerSingleChannelController(const QString& key, SingleChannelController*);
     Q_INVOKABLE void unRegisterSingleChannelController(const QString& key);
     Q_INVOKABLE DataGenerator* getDataGenerator(const QString& value);
+    SingleChannelController* getTopController();
 
 signals:
     void modelChanged();
     void insertRowBefore(int index);
+    void topControllerChanged();
 
 public slots:
     void onWheelScaled(const qreal& , const QPointF&);
@@ -33,8 +36,6 @@ public slots:
     void onSplitterDragging(int stride,bool left, bool forward);
 
 private:
-    SingleChannelController* getTopController();
-
     SingleChannelController* mTopController {nullptr};
     //QPointer<ChannelDataModel> mDataModel;
     QPointer<TreeModel> mDataModel;

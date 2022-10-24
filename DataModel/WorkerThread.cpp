@@ -1,5 +1,5 @@
 #include "WorkerThread.h"
-#include <iostream>
+#include <QDebug>
 #include <QMutexLocker>
 
 static unsigned long rseed = 10;
@@ -8,7 +8,7 @@ WorkerThread::WorkerThread(QObject* parent)
     : QThread(parent)
 {
     QObject::connect(this, &QThread::finished, this, [](){
-        std::cout << "the worker thread finished" << std::endl;
+        qDebug() << "the worker thread finished";
     });
 }
 
@@ -31,6 +31,7 @@ QVariant WorkerThread::generate(const QString& columnName, size_t from, size_t n
 
     return {};
 }
+
 
 void WorkerThread::run()
 {

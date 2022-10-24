@@ -14,7 +14,7 @@ SingleChannelController::SingleChannelController(QObject* parent)
 
 SingleChannelController::~SingleChannelController()
 {
-    std::cout << "SingleChannelController deletion" << std::endl;
+    qDebug() << "SingleChannelController deletion";
 }
 
 void SingleChannelController::appendDatas(const QList<qreal>& datasToAppend)
@@ -80,7 +80,10 @@ void SingleChannelController::integralMove(int count, bool forward)
     if(count > 0)
     {
         mRangeStartPos = mRangeStartPos + (forward ? count : -count);
-        //qDebug() <<"key: "<< mKey<< "range start position:"<< mRangeStartPos << " displaying data count:" << mDisplayingDataCount<< " total range:" << mTotalRange;
+        qDebug()<<"key: "<< mKey
+                << "range start position:"<< mRangeStartPos
+                << " displaying data count:" << mDisplayingDataCount
+                << " total range:" << mTotalRange;
 
         emit rangeStartPosChanged();
 
@@ -118,6 +121,11 @@ void SingleChannelController::zoomTo(size_t count)
         mDisplayingDataCount = count;
         emit displayingDataCountChanged();
 
+        qDebug()<<"key: "<< mKey
+                << "range start position:"<< mRangeStartPos
+                << " displaying data count:" << mDisplayingDataCount
+                << " total range:" << mTotalRange;
+
         LoaderType type = mDisplayingDataCount > MAXIMUM_RECTANGLE_DISPLAYING_DATA_COUNT ? PointSet : Rectangle;
         if(type != mLoaderType)
         {
@@ -150,7 +158,7 @@ void SingleChannelController::fetchMoreData(size_t count)
     size_t loadSize = mBatchSize * batchNum;
 
     loadSize = std::min(loadSize, getTotalDataCount() - mTotalRange);
-    std::cout<< "Ready to load data count:" << loadSize << std::endl;
+    qDebug()<< "Ready to load data count:" << loadSize;
 
     mTotalRange += loadSize;
 
@@ -162,7 +170,7 @@ void SingleChannelController::updateModel()
     int diff = mDisplayingDataCount + mRangeStartPos - mTotalRange;
     if(diff>0)
     {
-        std::cout << "Out of boundary, more data is required:"<< diff << std::endl;
+        qDebug() << "Out of boundary, more data is required:"<< diff;
         fetchMoreData(diff);
     }
 }
@@ -178,7 +186,7 @@ void SingleChannelController::rebase()
 
         if(rebase)
         {
-            std::cout << "Rebase rectangle model offset:"<< mRangeStartPos << std::endl;
+            qDebug() << "Rebase rectangle model offset:"<< mRangeStartPos;
             mBarSetModel->setBaseOffset(mRangeStartPos);
         }
     }
