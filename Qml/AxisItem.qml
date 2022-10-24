@@ -145,7 +145,7 @@ Rectangle {
 
             states: [
                 State{
-                    name: "anchorChange"
+                    name: "dragging"
 
                     AnchorChanges{
                         target: viewPort
@@ -173,8 +173,81 @@ Rectangle {
                         anchors.leftMargin: -rightSpliter.width / 2
                     }
                     when: dragging
-                }
+                },
 
+                State{
+                    name: "noDragging"
+
+                    AnchorChanges{
+                        target: viewPort
+                        anchors.left: leftSplitter.right
+                        anchors.right: rightSpliter.left
+                    }
+
+                    AnchorChanges{
+                        target: leftSplitter
+                        anchors.right: undefined
+                    }
+
+                    AnchorChanges{
+                        target: rightSpliter
+                        anchors.left: undefined
+                    }
+
+                    PropertyChanges{
+                        target: leftSplitter
+                        x: beginIndex * root.width / totalCount - leftSplitter.width / 2
+                    }
+
+                    PropertyChanges{
+                        target: rightSpliter
+                        x: (root.beginIndex + root.displayingCount) * root.width / totalCount - rightSpliter.width / 2
+                    }
+
+                    PropertyChanges {
+                        target: viewPort
+                        anchors.leftMargin: -leftSplitter.width / 2
+                        anchors.rightMargin: -rightSpliter.width / 2
+                    }
+                    when: !leftSplitterDragging && !rightSplitterDragging &&　!dragging
+                },
+
+                State{
+                    name: "splitterDragging"
+
+                    AnchorChanges{
+                        target: viewPort
+                        anchors.left: leftSplitter.right
+                        anchors.right: rightSpliter.left
+                    }
+
+                    AnchorChanges{
+                        target: leftSplitter
+                        anchors.right: undefined
+                    }
+
+                    AnchorChanges{
+                        target: rightSpliter
+                        anchors.left: undefined
+                    }
+
+                    PropertyChanges{
+                        target: leftSplitter
+                        x: undefined
+                    }
+
+                    PropertyChanges{
+                        target: rightSpliter
+                        x: undefined
+                    }
+
+                    PropertyChanges {
+                        target: viewPort
+                        anchors.leftMargin: -leftSplitter.width / 2
+                        anchors.rightMargin: -rightSpliter.width / 2
+                    }
+                    when: leftSplitterDragging || rightSplitterDragging
+                }
             ]
 
             Loader{
@@ -190,13 +263,6 @@ Rectangle {
 
                 sourceComponent: splitterComp
 
-                Binding{
-                    target: leftSplitter
-                    property: "x"
-                    value: beginIndex * root.width / totalCount - leftSplitter.width / 2
-                    when: /*!leftSplitterDragging&& !rightSplitterDragging && !*/!dragging
-                }
-
                 onXChanged: {
                     if(leftSplitterDragging){
                         root.leftSplitterMoved(Math.abs( leftSplitter.x- leftSplitter.currentX ) * totalCount / root.width, x > currentX)
@@ -208,10 +274,6 @@ Rectangle {
             Rectangle{
                 id: viewPort
 
-                anchors.left: leftSplitter.right
-                anchors.right: rightSpliter.left
-                anchors.leftMargin: -leftSplitter.width/2
-                anchors.rightMargin: - rightSpliter.width/2
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
 
@@ -249,13 +311,6 @@ Rectangle {
                 z: 1
 
                 sourceComponent: splitterComp
-
-                Binding{
-                    target: rightSpliter
-                    property: "x"
-                    value: (root.beginIndex + root.displayingCount) * root.width / totalCount - rightSpliter.width / 2
-                    when: !leftSplitterDragging && !rightSplitterDragging &&　!dragging
-                }
 
                 onXChanged: {
                     if(rightSplitterDragging){
