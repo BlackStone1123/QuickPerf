@@ -52,7 +52,7 @@ Item {
          anchors.centerIn: parent
          text: defaultIndicator
          antialiasing: true
-         color: currentRow.isSelectedIndex ? root.selectedItemColor : root.handleColor
+         color: currentRow.expanded ? "white" : "black"
       }
    }
 
@@ -141,6 +141,7 @@ Item {
                   Loader {
                      id: indicatorLoader
 
+                     z: 1
                      property QtObject currentRow: _prop
                      Layout.leftMargin: parent.spacing
 

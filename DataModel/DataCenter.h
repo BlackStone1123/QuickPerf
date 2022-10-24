@@ -2,7 +2,7 @@
 #include <QObject>
 #include <QString>
 #include <QList>
-#include "DataGenerator.h"
+#include "WorkerThread.h"
 
 class QAxObject;
 class ExcelDataCenter;
@@ -13,7 +13,7 @@ class DataGenerator: public QObject
 public:
     friend class ExcelDataCenter;
     DataGenerator(const QString& valueColumn, QObject* parent = nullptr);
-    void generate(size_t from, size_t number);
+    void generate(size_t number);
     size_t getBackEndDataSize() const;
 
 signals:
@@ -24,6 +24,7 @@ private slots:
 
 private:
     QString mValue;
+    size_t mFrom {0};
     ExcelDataCenter* mDataCenter{nullptr};
 };
 

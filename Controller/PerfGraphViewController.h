@@ -26,11 +26,11 @@ signals:
     void insertRowBefore(int index);
 
 public slots:
-    void onWheelScaled(const QPointF&);
+    void onWheelScaled(const qreal& , const QPointF&);
     void onLeftKeyPressed();
     void onRightKeyPressed();
     void onSliderPositionChanged(int position);
-    void onSliderRangeChanged(int range);
+    void onSplitterDragging(int stride,bool left, bool forward);
 
 private:
     SingleChannelController* getTopController();

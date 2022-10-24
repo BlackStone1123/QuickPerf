@@ -118,10 +118,6 @@ Item{
                 }
             }
         }
-
-        onLoaded: {
-            console.log("rectangle view loaded")
-        }
     }
 
     Loader{
@@ -150,7 +146,6 @@ Item{
         }
 
         onLoaded: {
-            console.log("point set loaded!")
             pointSetViewLoader.item.repaint();
         }
     }

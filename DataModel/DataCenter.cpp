@@ -26,11 +26,13 @@ DataGenerator::DataGenerator(const QString& valueColumn, QObject* parent)
 {
 }
 
-void DataGenerator::generate(size_t from, size_t number)
+void DataGenerator::generate(size_t number)
 {
     if(mDataCenter)
     {
-        mDataCenter->generate(mValue, from, number);
+        qWarning() << "request data from column: " << mValue << " from: " << mFrom << "number: " << number;
+        mDataCenter->generate(mValue, mFrom, number);
+        mFrom += number;
     }
 }
 

@@ -1,4 +1,4 @@
-#include "DataGenerator.h"
+#include "WorkerThread.h"
 #include <iostream>
 #include <QMutexLocker>
 

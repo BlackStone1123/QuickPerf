@@ -38,46 +38,6 @@ Item {
 //                 renderTarget: Canvas.FramebufferObject
 //                 renderStrategy: Canvas.Threaded
 
-        function drawBackground(ctx) {
-            ctx.save();
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = "#d7d7d7";
-            ctx.beginPath();
-            // Horizontal grid lines
-            for (var i = 0; i < 12; i++) {
-                ctx.moveTo(0, canvas.yGridOffset + i * canvas.yGridStep);
-                ctx.lineTo(canvas.width, canvas.yGridOffset + i * canvas.yGridStep);
-            }
-
-            // Vertical grid lines
-            var height = 35 * canvas.height / 36;
-            var yOffset = canvas.height - height;
-            var xOffset = 0;
-            for (i = 0; i < chart.gridSize; i++) {
-                ctx.moveTo(xOffset + i * chart.gridStep, yOffset);
-                ctx.lineTo(xOffset + i * chart.gridStep, height);
-            }
-            ctx.stroke();
-
-            // Right ticks
-            ctx.strokeStyle = "#666666";
-            ctx.beginPath();
-            var xStart = canvas.width - tickMargin;
-            ctx.moveTo(xStart, 0);
-            ctx.lineTo(xStart, canvas.height);
-            for (i = 0; i < 12; i++) {
-                ctx.moveTo(xStart, canvas.yGridOffset + i * canvas.yGridStep);
-                ctx.lineTo(canvas.width, canvas.yGridOffset + i * canvas.yGridStep);
-            }
-            ctx.moveTo(0, canvas.yGridOffset + 9 * canvas.yGridStep);
-            ctx.lineTo(canvas.width, canvas.yGridOffset + 9 * canvas.yGridStep);
-            ctx.closePath();
-            ctx.stroke();
-
-            ctx.restore();
-        }
-
         function drawLines(ctx, color, points)
         {
             ctx.save();

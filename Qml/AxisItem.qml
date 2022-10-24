@@ -9,9 +9,12 @@ Rectangle {
     property real totalCount: 2000
     property real displayingCount: 100
     property bool dragging: sliderArea.drag.active
+    property bool leftSplitterDragging: leftSplitter.dragging
+    property bool rightSplitterDragging: rightSpliter.dragging
 
     signal sliderBeginIndexChanged(int position)
-    signal sliderRangeChanged(int range)
+    signal leftSplitterMoved(int range, bool forward)
+    signal rightSplitterMoved(int range, bool forward)
 
     implicitHeight: 90
 
@@ -55,7 +58,9 @@ Rectangle {
             id: splitter
 
             implicitHeight: 40
-            implicitWidth: 5
+            implicitWidth: 6
+
+            property bool dragging: mouseArea.drag.active
 
             ColumnLayout{
                 anchors.fill: parent
@@ -77,6 +82,21 @@ Rectangle {
                     Layout.alignment: Qt.AlignHCenter
 
                     color: "gray"
+                }
+            }
+
+            MouseArea{
+                id: mouseArea
+
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: containsMouse ? Qt.SizeHorCursor : Qt.ArrowCursor
+
+                drag{
+                    target: splitter.parent
+                    axis: Drag.XAxis
+                    minimumX: -splitter.width / 2
+                    maximumX: root.width - splitter.width / 2
                 }
             }
         }
@@ -123,68 +143,126 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            Rectangle{
-                id: slider
+            states: [
+                State{
+                    name: "anchorChange"
 
-                color: "transparent"
+                    AnchorChanges{
+                        target: viewPort
+                        anchors.left: undefined
+                        anchors.right: undefined
+                    }
 
-                x: beginIndex * root.width / totalCount
+                    AnchorChanges{
+                        target: leftSplitter
+                        anchors.right: viewPort.left
+                    }
+
+                    AnchorChanges{
+                        target: rightSpliter
+                        anchors.left: viewPort.right
+                    }
+
+                    PropertyChanges{
+                        target: leftSplitter
+                        anchors.rightMargin: -leftSplitter.width / 2
+                    }
+
+                    PropertyChanges{
+                        target: rightSpliter
+                        anchors.leftMargin: -rightSpliter.width / 2
+                    }
+                    when: dragging
+                }
+
+            ]
+
+            Loader{
+                id: leftSplitter
+
+                property bool dragging: item.dragging
+                property real currentX: 0
+
+                z: 1
+
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
 
-                width: displayingCount * root.width / totalCount
+                sourceComponent: splitterComp
 
-                Loader{
-                    id: leftSplitter
-                    z: 1
-                    anchors.left: parent.left
-                    anchors.leftMargin: -2
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-
-                    sourceComponent: splitterComp
-                }
-
-                Rectangle{
-                    id: viewPort
-
-                    anchors.left: leftSplitter.right
-                    anchors.right: rightSpliter.left
-                    anchors.leftMargin: -2
-                    anchors.rightMargin: -2
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-
-                    MouseArea{
-                        id: sliderArea
-
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: containsMouse ? Qt.SizeAllCursor : Qt.ArrowCursor
-
-                        drag{
-                            target: slider
-                            axis: Drag.XAxis
-                            minimumX: 0
-                            maximumX: sliderChannel.width - slider.width
-                        }
-                    }
-                }
-
-                Loader{
-                    id: rightSpliter
-
-                    anchors.right: parent.right
-                    anchors.rightMargin: -2
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    z: 1
-
-                    sourceComponent: splitterComp
+                Binding{
+                    target: leftSplitter
+                    property: "x"
+                    value: beginIndex * root.width / totalCount - leftSplitter.width / 2
+                    when: /*!leftSplitterDragging&& !rightSplitterDragging && !*/!dragging
                 }
 
                 onXChanged: {
-                    root.sliderBeginIndexChanged(slider.x * root.totalCount / root.width);
+                    if(leftSplitterDragging){
+                        root.leftSplitterMoved(Math.abs( leftSplitter.x- leftSplitter.currentX ) * totalCount / root.width, x > currentX)
+                    }
+                    leftSplitter.currentX = x;
+                }
+            }
+
+            Rectangle{
+                id: viewPort
+
+                anchors.left: leftSplitter.right
+                anchors.right: rightSpliter.left
+                anchors.leftMargin: -leftSplitter.width/2
+                anchors.rightMargin: - rightSpliter.width/2
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+
+                MouseArea{
+                    id: sliderArea
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: containsMouse ? Qt.SizeAllCursor : Qt.ArrowCursor
+
+                    drag{
+                        target: viewPort
+                        axis: Drag.XAxis
+                        minimumX: 0
+                        maximumX: sliderChannel.width - viewPort.width
+                    }
+                }
+
+                onXChanged: {
+                    if(dragging){
+                        root.sliderBeginIndexChanged(viewPort.x * root.totalCount / root.width);
+                    }
+                }
+            }
+
+            Loader{
+                id: rightSpliter
+
+                property bool dragging: item.dragging
+                property real currentX: 0
+
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+
+                z: 1
+
+                sourceComponent: splitterComp
+
+                Binding{
+                    target: rightSpliter
+                    property: "x"
+                    value: (root.beginIndex + root.displayingCount) * root.width / totalCount - rightSpliter.width / 2
+                    when: !leftSplitterDragging && !rightSplitterDragging &&　!dragging
+                }
+
+                onXChanged: {
+                    if(rightSplitterDragging){
+                        root.rightSplitterMoved(Math.abs( rightSpliter.x- rightSpliter.currentX ) * totalCount / root.width, x > currentX)
+                    }
+
+                    rightSpliter.currentX = x;
                 }
             }
         }

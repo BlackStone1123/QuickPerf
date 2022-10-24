@@ -44,7 +44,8 @@ void SingleChannelController::loadInitialDatas(int count)
     mLoaderType = mDisplayingDataCount > MAXIMUM_RECTANGLE_DISPLAYING_DATA_COUNT ? PointSet : Rectangle;
     emit loaderTypeChanged();
 
-    startLoading( count > 0 ? count : mTotalRange );
+    mTotalRange = count > 0 ? count : mTotalRange;
+    startLoading( mTotalRange );
 }
 
 void SingleChannelController::setDataGenerator(DataGenerator* gen)
@@ -71,15 +72,15 @@ void SingleChannelController::startLoading(size_t loadSize)
     }
 
     mPendingLoading++;
-    mGenerator->generate(mAmplitudes.count(), loadSize);
+    mGenerator->generate(loadSize);
 }
 
-void SingleChannelController::move(int count, bool forward)
+void SingleChannelController::integralMove(int count, bool forward)
 {
     if(count > 0)
     {
         mRangeStartPos = mRangeStartPos + (forward ? count : -count);
-        std::cout << "range start position:"<< mRangeStartPos << " displaying data count:" << mDisplayingDataCount<< " total range:" << mTotalRange << std::endl;
+        //qDebug() <<"key: "<< mKey<< "range start position:"<< mRangeStartPos << " displaying data count:" << mDisplayingDataCount<< " total range:" << mTotalRange;
 
         emit rangeStartPosChanged();
 
@@ -88,9 +89,26 @@ void SingleChannelController::move(int count, bool forward)
     }
 }
 
-void SingleChannelController::moveTo(int pos)
+void SingleChannelController::integralMoveTo(int pos)
 {
-    move(qFabs(pos - (int)mRangeStartPos) , (size_t)pos > mRangeStartPos);
+    integralMove(qFabs(pos - (int)mRangeStartPos) , (size_t)pos > mRangeStartPos);
+}
+
+void SingleChannelController::sliderMove(int count, bool left, bool forward)
+{
+    if(count != 0)
+    {
+        if(left)
+        {
+            mRangeStartPos = mRangeStartPos + (forward ? count : -count);
+            emit rangeStartPosChanged();
+
+            zoomTo(mDisplayingDataCount + (forward ? -count : count));
+        }
+        else {
+            zoomTo(mDisplayingDataCount + (forward ? count : -count));
+        }
+    }
 }
 
 void SingleChannelController::zoomTo(size_t count)
@@ -123,7 +141,7 @@ int SingleChannelController::requestForMoveStride(size_t preferSize, bool forwar
 int SingleChannelController::requestForZoomStride(size_t count)
 {
     size_t backendSize = getDataGenerator()->getBackEndDataSize();
-    return std::min(count, backendSize - mRangeStartPos);
+    return std::min(count, backendSize);
 }
 
 void SingleChannelController::fetchMoreData(size_t count)

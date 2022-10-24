@@ -1,14 +1,13 @@
 #include "PerfGraphViewController.h"
-#include <iostream>
 #include <QPointF>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDebug>
+#include <QtMath>
 
 #include "../DataModel/ChannelDataModel.h"
-#include "../DataModel/DataGenerator.h"
 #include "../Json/JsonEntry.h"
 #include "../DataModel/TreeItem.h"
 #include "../DataModel/TreeModel.h"
@@ -77,7 +76,7 @@ PerfGraphViewController::PerfGraphViewController(QObject* parent)
 
 PerfGraphViewController::~PerfGraphViewController()
 {
-    std::cout << "PerfGraphViewController deletion" << std::endl;
+    qDebug() << "PerfGraphViewController deletion";
 }
 
 void PerfGraphViewController::registerSingleChannelController(const QString& key, SingleChannelController* controller)
@@ -92,7 +91,7 @@ void PerfGraphViewController::registerSingleChannelController(const QString& key
 
             if(!mControllerList.isEmpty())
             {
-                controller->moveTo(getTopController()->getRangeStartPosition());
+                controller->integralMoveTo(getTopController()->getRangeStartPosition());
                 controller->zoomTo(getTopController()->getDisplayingDataCount());
             }
         }
@@ -130,29 +129,36 @@ DataGenerator* PerfGraphViewController::getDataGenerator(const QString& value)
     return  nullptr;
 }
 
-void PerfGraphViewController::onWheelScaled(const QPointF& point)
+void PerfGraphViewController::onWheelScaled(const qreal& ratio, const QPointF& point)
 {
     if(mControllerList.isEmpty())
         return;
 
     auto singleController = getTopController();
     int currentDisplayingCount = singleController->getDisplayingDataCount();
-
     bool zoomIn = point.y() > 0;
+
     int scaledNumber =  currentDisplayingCount * (zoomIn ? 0.8 : 1.2);
     scaledNumber = std::max(scaledNumber, MINIMUM_DISPLAYING_DATA_COUNT);
     scaledNumber = singleController->requestForZoomStride(scaledNumber);
 
-    if(currentDisplayingCount != scaledNumber)
+    int leftSliderMoveStride = qCeil(qFabs(currentDisplayingCount - scaledNumber) * ratio);
+    int rightSliderMoveStride = qFabs(currentDisplayingCount - scaledNumber) - leftSliderMoveStride;
+
+    if(!zoomIn)
     {
-        for(auto controller: mControllerList)
-        {
-            controller->zoomTo(scaledNumber);
+        leftSliderMoveStride = singleController->requestForMoveStride(leftSliderMoveStride, false);
+        rightSliderMoveStride = singleController->requestForMoveStride(rightSliderMoveStride, true);
+    }
+
+    if(currentDisplayingCount != scaledNumber){
+        for(auto controller: mControllerList){
+            controller->sliderMove(leftSliderMoveStride, true, zoomIn);
+            controller->sliderMove(rightSliderMoveStride, false, !zoomIn);
         }
     }
-    else
-    {
-        std::cout<< "can not zoom more data" << std::endl;
+    else{
+        qDebug()<< "can not zoom more data";
     }
 }
 
@@ -168,13 +174,13 @@ void PerfGraphViewController::onLeftKeyPressed()
 
     if(dataStride == 0)
     {
-        std::cout << "reach to the left end, can not scroll any more!" << std::endl;
+        qDebug() << "reach to the left end, can not scroll any more!";
         return;
     }
 
     for (auto controller: mControllerList)
     {
-        controller->move(dataStride, false);
+        controller->integralMove(dataStride, false);
     }
 }
 
@@ -190,13 +196,13 @@ void PerfGraphViewController::onRightKeyPressed()
 
     if(dataStride == 0)
     {
-        std::cout << "reach to the right end, can not scroll any more!" << std::endl;
+        qDebug()<< "reach to the right end, can not scroll any more!";
         return;
     }
 
     for (auto& controller: mControllerList)
     {
-        controller->move(dataStride, true);
+        controller->integralMove(dataStride, true);
     }
 }
 
@@ -204,13 +210,14 @@ void PerfGraphViewController::onSliderPositionChanged(int position)
 {
     for (auto& controller: mControllerList)
     {
-        controller->moveTo(position);
+        controller->integralMoveTo(position);
     }
 }
-
-void PerfGraphViewController::onSliderRangeChanged(int range)
+void PerfGraphViewController::onSplitterDragging(int stride, bool left, bool forward)
 {
-
+    for(auto controller: mControllerList){
+        controller->sliderMove(stride, left, forward);
+    }
 }
 
 SingleChannelController* PerfGraphViewController::getTopController()

@@ -32,8 +32,9 @@ public:
     DataGenerator* getDataGenerator() const { return mGenerator; }
     void setDataGenerator(DataGenerator* gen);
 
-    void move(int count, bool forward);
-    void moveTo(int pos);
+    void integralMove(int count, bool forward);
+    void integralMoveTo(int pos);
+    void sliderMove(int count, bool left, bool forward);
     void zoomTo(size_t count);
 
     int requestForMoveStride(size_t preferSize, bool forward);

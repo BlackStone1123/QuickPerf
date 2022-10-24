@@ -181,10 +181,23 @@ FocusScope{
                 AxisItem{
                     id: axisItem
 
-                    displayingCount: firstChannelController.displayingDataCount
                     totalCount: firstChannelController.getTotalDataCount()
+                    displayingCount: firstChannelController.displayingDataCount
+                    beginIndex: firstChannelController.rangeStartPos
 
                     Layout.fillWidth: true
+
+                    onSliderBeginIndexChanged:{
+                        graphController.onSliderPositionChanged(position)
+                    }
+
+                    onLeftSplitterMoved: {
+                        graphController.onSplitterDragging(range, true, forward)
+                    }
+
+                    onRightSplitterMoved: {
+                        graphController.onSplitterDragging(range, false, forward)
+                    }
                 }
 
                 Item{
@@ -199,7 +212,7 @@ FocusScope{
 
                         onWheel: {
                             if(root.activeFocus && (wheel.modifiers & Qt.ControlModifier)){
-                                graphController.onWheelScaled(wheel.angleDelta)
+                                graphController.onWheelScaled(wheel.x / parent.width, wheel.angleDelta)
                                 wheel.accepted = true
                             }
                             else
@@ -210,22 +223,6 @@ FocusScope{
                             mouse.accepted = false
                         }
                     }
-                }
-
-                Connections{
-                    target: axisItem
-                    enabled: axisItem.dragging
-
-                    onSliderBeginIndexChanged:{
-                        graphController.onSliderPositionChanged(position)
-                    }
-                }
-
-                Binding {
-                    target: axisItem;
-                    property: "beginIndex";
-                    value: firstChannelController.rangeStartPos;
-                    when: !axisItem.dragging
                 }
             }
         }
@@ -243,12 +240,12 @@ FocusScope{
         }
     }
 
-    GraphBorder{
-        id: border
-        visible: root.activeFocus
+//    GraphBorder{
+//        id: border
+//        visible: root.activeFocus
 
-        border.color: firstChannelController.loaderType === SingleChannelController.Rectangle ? "cyan" : "black"
-    }
+//        border.color: firstChannelController.loaderType === SingleChannelController.Rectangle ? "cyan" : "black"
+//    }
 
     Keys.onPressed: {
         if (event.key === Qt.Key_A) {
