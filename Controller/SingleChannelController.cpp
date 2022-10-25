@@ -80,10 +80,10 @@ void SingleChannelController::integralMove(int count, bool forward)
     if(count > 0)
     {
         mRangeStartPos = mRangeStartPos + (forward ? count : -count);
-        qDebug()<<"key: "<< mKey
-                << "range start position:"<< mRangeStartPos
-                << " displaying data count:" << mDisplayingDataCount
-                << " total range:" << mTotalRange;
+//        qDebug()<<"key: "<< mKey
+//                << "range start position:"<< mRangeStartPos
+//                << " displaying data count:" << mDisplayingDataCount
+//                << " total range:" << mTotalRange;
 
         emit rangeStartPosChanged();
 
@@ -121,10 +121,10 @@ void SingleChannelController::zoomTo(size_t count)
         mDisplayingDataCount = count;
         emit displayingDataCountChanged();
 
-        qDebug()<<"key: "<< mKey
-                << "range start position:"<< mRangeStartPos
-                << " displaying data count:" << mDisplayingDataCount
-                << " total range:" << mTotalRange;
+//        qDebug()<<"key: "<< mKey
+//                << "range start position:"<< mRangeStartPos
+//                << " displaying data count:" << mDisplayingDataCount
+//                << " total range:" << mTotalRange;
 
         LoaderType type = mDisplayingDataCount > MAXIMUM_RECTANGLE_DISPLAYING_DATA_COUNT ? PointSet : Rectangle;
         if(type != mLoaderType)

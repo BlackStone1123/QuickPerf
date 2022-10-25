@@ -10,6 +10,8 @@ FocusScope{
     property var handleComp: null
     property var handleWidth: 1
 
+    signal scrollAreaWheeled()
+
     PerfGraphViewController{
         id: graphController
     }
@@ -212,8 +214,10 @@ FocusScope{
                                 graphController.onWheelScaled(wheel.x / parent.width, wheel.angleDelta)
                                 wheel.accepted = true
                             }
-                            else
+                            else{
+                                root.scrollAreaWheeled();
                                 wheel.accepted = false
+                            }
                         }
 
                         onPressed: {

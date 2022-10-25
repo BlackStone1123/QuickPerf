@@ -96,7 +96,7 @@ Item{
 
                         anchors.bottom: parent.bottom
                         implicitWidth: __barWidth
-                        implicitHeight: model.Amplitude * root.height / 100
+                        implicitHeight: Math.max(1, model.Amplitude * root.height / 100)
                         color: hoverHandler.hovered ? Qt.darker(barColor, 2.0) : barColor
 
                         HoverHandler{
