@@ -49,7 +49,7 @@ namespace  {
     void populateTree(TreeItem* rootItem)
     {
         QFile jsonFile;
-        jsonFile.setFileName("..\\..\\pfa_test_config.json");
+        jsonFile.setFileName("pfa_test_config.json");
 
         if(!jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)){
             qCritical() << "error: json file cannot be open";

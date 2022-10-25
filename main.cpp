@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     MainWindowController mainController;
     mainController.initialize();
 
-    QDir dir("..\\..\\spc_0_0_by_cycle_range.xlsx");
+    QDir dir("spc_0_0_by_cycle_range.xlsx");
     ExcelDataCenter dataCenter(2794,  dir.absolutePath(), &app);
     auto pView = mainController.createQuickView(QStringLiteral("qrc:/Qml/main.qml"), 800, 610);
     if(pView)
