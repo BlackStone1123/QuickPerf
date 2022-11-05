@@ -36,8 +36,16 @@ Item {
    implicitWidth: parent.width
    implicitHeight: childrenRect.height
 
-   // Components
+   function outofViewPort(item){
+       var y0 = item.mapToItem(rootItem, 0,0);
+       var y1 = item.mapToItem(rootItem, 0, item.height);
+       var vy0 = viewPort.y;
+       var vy1 = viewPort.y + viewPort.height;
 
+       return y0.y >= vy1 || y1.y <= vy0;
+   }
+
+   // Components
    property Component handle: Rectangle {
       id: handle
 

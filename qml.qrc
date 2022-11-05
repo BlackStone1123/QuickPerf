@@ -9,5 +9,8 @@
         <file>Qml/AxisItem.qml</file>
         <file>Qml/PerfTreeViewItem.qml</file>
         <file>Qml/PerfTreeView.qml</file>
+        <file>Image/filledStar.png</file>
+        <file>Image/hollowStar.png</file>
+        <file>Qml/Channel.qml</file>
     </qresource>
 </RCC>

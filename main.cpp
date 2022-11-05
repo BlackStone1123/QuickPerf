@@ -2,6 +2,7 @@
 #include <QtDebug>
 #include <QGuiApplication>
 #include <QDir>
+#include <memory>
 
 #include "DataModel/DataCenter.h"
 #include "Controller/MainWindowController.h"

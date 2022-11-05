@@ -9,7 +9,8 @@ class DataGenerator;
 class PerfGraphViewController : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(TreeModel* graphModel MEMBER mDataModel NOTIFY modelChanged)
+    Q_PROPERTY(TreeModel* graphModel MEMBER mTreeModel NOTIFY treeModelChanged)
+    Q_PROPERTY(ChannelDataModel* listModel MEMBER mListModel NOTIFY listModelChanged)
     Q_PROPERTY(SingleChannelController* topController MEMBER mTopController NOTIFY topControllerChanged)
 
 public:
@@ -24,7 +25,8 @@ public:
     SingleChannelController* getTopController();
 
 signals:
-    void modelChanged();
+    void treeModelChanged();
+    void listModelChanged();
     void insertRowBefore(int index);
     void topControllerChanged();
 
@@ -34,10 +36,12 @@ public slots:
     void onRightKeyPressed();
     void onSliderPositionChanged(int position);
     void onSplitterDragging(int stride,bool left, bool forward);
+    void onPinButtonToggled(const QString& key, const QString& value, bool checked, bool down);
 
 private:
     SingleChannelController* mTopController {nullptr};
-    //QPointer<ChannelDataModel> mDataModel;
-    QPointer<TreeModel> mDataModel;
     ControllerList mControllerList;
+
+    QPointer<ChannelDataModel> mListModel;
+    QPointer<TreeModel> mTreeModel;
 };

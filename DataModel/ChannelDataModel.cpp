@@ -2,15 +2,11 @@
 #include <QDebug>
 #include <cmath>
 #include "DataCenter.h"
+#include <algorithm>
 
-ChannelDataModel::ChannelDataModel(GeneratorList generators, QObject* parent)
+ChannelDataModel::ChannelDataModel(QObject* parent)
     : QAbstractListModel(parent)
 {
-    for (size_t i = 0; i < (size_t)generators.count(); i++)
-    {
-        mRows.append( generateChannelDataRow(i, generators[i]));
-    }
-    
 }
 
 ChannelDataModel::~ChannelDataModel()
@@ -21,8 +17,8 @@ ChannelDataModel::~ChannelDataModel()
 QHash<int,QByteArray> ChannelDataModel::roleNames() const 
 {
     QHash<int, QByteArray> roles;
-    roles[(int) ChannelDataRoles::Generator] = "Generator";
-    roles[(int) ChannelDataRoles::Color] = "Color";
+    roles[(int) ChannelDataRoles::label] = "Label";
+    roles[(int) ChannelDataRoles::columnName] = "ColumnName";
 
     return roles;
 }
@@ -34,12 +30,11 @@ QVariant ChannelDataModel::data(const QModelIndex &index, int role) const
 
     const ChannelDataRow& channelRow = mRows[index.row()];
 
-    if (role == (int) ChannelDataRoles::Generator)
-        return QVariant::fromValue<DataGenerator*>(channelRow.generator);
-    else if (role == (int) ChannelDataRoles::Color ){
-        return channelRow.color;
+    if (role == (int) ChannelDataRoles::label)
+        return channelRow.key;
+    else if (role == (int) ChannelDataRoles::columnName ){
+        return channelRow.value;
     }
-    
     
     return QVariant();
 }
@@ -49,10 +44,10 @@ int ChannelDataModel::rowCount(const QModelIndex & parent) const
     return mRows.count();
 }
 
-void ChannelDataModel::addChannelDataBefore(size_t index, QPointer<DataGenerator> generator)
+void ChannelDataModel::addChannelDataBefore(size_t index, const QString& key, const QString& value)
 {
     qDebug()<< "begin insert row at position:" << index;
-    ChannelDataRow newRow = generateChannelDataRow(index, generator);
+    ChannelDataRow newRow = generateChannelDataRow(key, value);
 
     // update the model with new row
     beginInsertRows(QModelIndex(), index, index);
@@ -60,28 +55,31 @@ void ChannelDataModel::addChannelDataBefore(size_t index, QPointer<DataGenerator
     endInsertRows();
 }
 
-ChannelDataRow ChannelDataModel::generateChannelDataRow(size_t index, QPointer<DataGenerator> dataGenerator)
+void ChannelDataModel::appendChannelData(const QString& key, const QString& value)
+{
+    addChannelDataBefore(mRows.count(), key, value);
+}
+
+void ChannelDataModel::removeChannelData(const QString& key)
+{
+    auto itr = std::find_if(mRows.begin(), mRows.end(),[&key](auto& _one){
+        return _one.key == key;
+    });
+
+    if(itr != mRows.end())
+    {
+        int index = itr - mRows.begin();
+        beginRemoveRows(QModelIndex(),index, index);
+        mRows.erase(itr);
+        endRemoveRows();
+    }
+}
+
+ChannelDataRow ChannelDataModel::generateChannelDataRow(const QString& key, const QString& value)
 {
     ChannelDataRow newRow;
-    newRow.generator = dataGenerator;
-
-    switch (index % 4)
-    {
-    case 0:
-        newRow.color = Qt::red;
-        break;
-    case 1:
-        newRow.color = Qt::green;
-        break;
-    case 2:
-        newRow.color = Qt::blue;
-        break;
-    case 3:
-        newRow.color = Qt::yellow;
-        break;
-    default:
-        break;
-    }
+    newRow.key = key;
+    newRow.value = value;
 
     return newRow;
 }

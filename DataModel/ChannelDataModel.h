@@ -1,41 +1,43 @@
 #pragma once
 #include <QAbstractListModel>
-#include <QList>
 #include <QColor>
+#include <QString>
+#include <QList>
 
 #include "../CommonDefines.h"
 
 class DataGenerator;
 struct ChannelDataRow
 {
-    DataGenerator* generator;
-    QColor color {Qt::red};
+    QString key{};
+    QString value{};
 };
 
 class ChannelDataModel : public QAbstractListModel
 {
     Q_OBJECT
 public:
-    using GeneratorList = QList<QPointer<DataGenerator>>;
     using ChannelRowList = QList<ChannelDataRow>;
 
     enum class ChannelDataRoles : std::uint64_t
     {
-        Generator = Qt::UserRole + 1,
-        Color
+        label = Qt::UserRole + 1,
+        columnName
     };
 
-    ChannelDataModel(GeneratorList generators, QObject* parent = nullptr);
+    ChannelDataModel(QObject* parent = nullptr);
     virtual ~ChannelDataModel();
 
     virtual QHash<int,QByteArray> roleNames() const override;
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     virtual int rowCount(const QModelIndex & parent = QModelIndex()) const override;
 
-    void addChannelDataBefore(size_t index, QPointer<DataGenerator> gen);
+    void addChannelDataBefore(size_t index, const QString& key, const QString& value);
+    void appendChannelData(const QString& key, const QString& value);
+    void removeChannelData(const QString& key);
 
 private:
-    ChannelDataRow generateChannelDataRow(size_t index, QPointer<DataGenerator> gen);
+    ChannelDataRow generateChannelDataRow(const QString& key, const QString& value);
 
 private:
     ChannelRowList mRows;

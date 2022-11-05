@@ -71,7 +71,8 @@ PerfGraphViewController::PerfGraphViewController(QObject* parent)
 {
     TreeItem* root = new TreeItem;
     populateTree(root);
-    mDataModel = new TreeModel(root, this);
+    mTreeModel = new TreeModel(root, this);
+    mListModel = new ChannelDataModel(this);
 }
 
 PerfGraphViewController::~PerfGraphViewController()
@@ -217,6 +218,29 @@ void PerfGraphViewController::onSplitterDragging(int stride, bool left, bool for
 {
     for(auto controller: mControllerList){
         controller->sliderMove(stride, left, forward);
+    }
+}
+
+void PerfGraphViewController::onPinButtonToggled(const QString& key, const QString& value, bool checked, bool down)
+{
+    if(down)
+    {
+        if(checked)
+        {
+            mListModel->appendChannelData(key + "_on", value);
+        }
+        else {
+            mListModel->removeChannelData(key + "_on");
+        }
+    }
+    else{
+        if(checked)
+        {
+            qDebug() << "impossible case!! the status of up pin button should always be checked";
+        }
+        else {
+            mListModel->removeChannelData(key);
+        }
     }
 }
 

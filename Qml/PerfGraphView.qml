@@ -1,23 +1,22 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.0
 import QtQuick.Controls 1.4
+import QtQuick.Controls.Styles 1.4
 import com.biren.dataModel 1.0
 
 FocusScope{
     id: root
 
-    //property int currentChannelIndex: graphListView.currentIndex
     property var handleComp: null
     property var handleWidth: 1
-
-    signal scrollAreaWheeled()
+    readonly property int channelHeight: 30
 
     PerfGraphViewController{
         id: graphController
     }
 
     Row{
-        id: background
+        id: backLayer
 
         anchors.fill: parent
         spacing: handleComp.width
@@ -56,99 +55,121 @@ FocusScope{
         }
     }
 
-    ScrollView{
-        id: scrollView
+    ColumnLayout {
+        id: middleLayer
 
         anchors.fill: parent
-        anchors.topMargin: 90
+        spacing: 0
 
-        focus: true
+        ListView{
+            id: listView
 
-        PerfTreeView{
-            id: graphTreeView
+            Layout.preferredHeight: channelHeight * count
+            Layout.fillWidth: true
+            Layout.topMargin: 90
 
-            focus: true
+            model: graphController.listModel
 
-            rowPadding: 10
-            rowSpacing: 0
-            rowHeight: 30
-            hoverColor: "#80add8e6"
-            selectedColor: "#80b0c4de"
+            delegate: Channel{
+                id: listChannel
 
-            selectionEnabled: true
-            hoverEnabled: true
+                property var padding: 10
 
-            model: graphController.graphModel
+                leftWidth: leftArea.width - padding
+                rightWidth: rightArea.width
+                spacing: handleComp.width
 
-            contentItem: Item {
-                id: content
+                rightCompVisible: true
+                pinButtonChecked: true
+                barColor: "orangered"
 
-                Rectangle{
-                    id: placeHolder
+                key: model.Label
+                value: model.ColumnName
 
-                    color: barset.visible ? "transparent" : "black"
+                x: padding
+                width: parent.width - padding
+                height: channelHeight
 
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    width: splitView.width
-                    x: - graphTreeView.rowPadding * currentRow.depth - 15
-                }
-
-                Row{
-                    id: contentRow
-                    anchors.fill: parent
-                    spacing: handleComp.width
-
-                    Rectangle{
-                        id: leftComp
-
-                        color: "transparent"
-
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        width: leftArea.width - 15 - graphTreeView.rowPadding * currentRow.depth
-
-                        Text {
-                            anchors.verticalCenter: leftComp.verticalCenter
-                            anchors.left: leftComp.left
-                            anchors.right: leftComp.right
-
-                            text: currentRow.currentData.key
-                            font.pixelSize: 12
-                            font.family: "Times"
-                            color: barset.visible ? "black" : "white"
-                            elide: Text.ElideRight
-                        }
-                    }
-
-                    BarSetChannel{
-                        id: barset
-
-                        dataGenerator: graphController.getDataGenerator(currentRow.currentData.value)
-                        barColor: currentRow.depth == 0 ? "red" : currentRow.depth == 1 ? "green" : currentRow.depth ==  2 ? "blue" : "black"
-
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        width: rightArea.width
-                        visible: !currentRow.hasChildren ||(!currentRow.expanded && currentRow.hasChildren)
-
-                        Component.onCompleted: {
-                            graphController.registerSingleChannelController(currentRow.currentData.key, barset.controller);
-                        }
-
-                        Component.onDestruction: {
-                            graphController.unRegisterSingleChannelController(currentRow.currentData.key);
-                        }
-                    }
+                onPinButtonToggled: {
+                    graphController.onPinButtonToggled(listChannel.key, listChannel.value, checked, false)
                 }
             }
         }
 
-        horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
+        Rectangle{
+            Layout.fillWidth: true
+            Layout.preferredHeight: 2
+            color: "black"
+        }
+
+        ScrollView{
+            id: scrollView
+
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            focus: true
+
+            PerfTreeView{
+                id: graphTreeView
+
+                focus: true
+
+                rowPadding: 10
+                rowSpacing: 0
+                rowHeight: channelHeight
+                hoverColor: "#80add8e6"
+                selectedColor: "#80b0c4de"
+
+                selectionEnabled: true
+                hoverEnabled: true
+
+                model: graphController.graphModel
+
+                contentItem: Item {
+                    id: content
+
+                    property var leftPadding: graphTreeView.rowPadding * currentRow.depth + 15
+
+                    Rectangle{
+                        id: placeHolder
+
+                        x: -leftPadding
+                        width: root.width
+                        color: currentRow.expanded ? "black" : "transparent"
+
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                    }
+
+                    Channel{
+                        id: channel
+
+                        leftWidth: leftArea.width - leftPadding
+                        rightWidth: rightArea.width
+                        spacing: handleComp.width
+
+                        rightCompVisible: !currentRow.expanded
+                        pinButtonVisible: !currentRow.hasChildren && currentRow.isHoveredIndex
+                        barColor: currentRow.depth === 0 ? "lightseagreen" : currentRow.depth === 1 ? "mediumpurple" : currentRow.depth ===  2 ? "orange" : "orangered"
+
+                        key: currentRow.currentData.key
+                        value: currentRow.currentData.value
+
+                        anchors.fill: parent
+                        onPinButtonToggled: {
+                            graphController.onPinButtonToggled(channel.key, channel.value, checked, true)
+                        }
+                    }
+                }
+            }
+
+            horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
+        }
     }
 
     SplitView{
-        id: splitView
+        id: topLayer
 
         anchors.fill: parent
         orientation: Qt.Horizontal
@@ -215,7 +236,6 @@ FocusScope{
                                 wheel.accepted = true
                             }
                             else{
-                                root.scrollAreaWheeled();
                                 wheel.accepted = false
                             }
                         }
