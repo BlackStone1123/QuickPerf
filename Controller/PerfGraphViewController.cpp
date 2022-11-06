@@ -80,39 +80,14 @@ PerfGraphViewController::~PerfGraphViewController()
     qDebug() << "PerfGraphViewController deletion";
 }
 
-void PerfGraphViewController::registerSingleChannelController(const QString& key, SingleChannelController* controller)
+void PerfGraphViewController::registerSingleChannelController(const QString& key, SingleChannelController* controller, bool up)
 {
-    if(!key.isEmpty() && controller->getDataGenerator() != nullptr)
-    {
-        if(mControllerList.find(key) == mControllerList.end())
-        {
-            mControllerList[key] = controller;
-            controller->setKey(key);
-            controller->loadInitialDatas(mControllerList.isEmpty() ? -1 : getTopController()->getTotalRange());
-
-            if(!mControllerList.isEmpty())
-            {
-                controller->integralMoveTo(getTopController()->getRangeStartPosition());
-                controller->zoomTo(getTopController()->getDisplayingDataCount());
-            }
-        }
-        else {
-            qDebug() << "the key is duplicated :" << key;
-        }
-    }
+    __registerSingleChannelController(up ? mUpControllerList : mControllerList, key, controller);
 }
 
-void PerfGraphViewController::unRegisterSingleChannelController(const QString& columnName)
+void PerfGraphViewController::unRegisterSingleChannelController(const QString& columnName, bool up)
 {
-    auto itr = mControllerList.find(columnName);
-    if(itr != mControllerList.end())
-    {
-        if(itr.value() == mTopController)
-        {
-            mTopController = nullptr;
-        }
-        mControllerList.erase(itr);
-    }
+    __unRegisterSingleChannelController(up ? mUpControllerList : mControllerList, columnName);
 }
 
 DataGenerator* PerfGraphViewController::getDataGenerator(const QString& value)
@@ -132,7 +107,7 @@ DataGenerator* PerfGraphViewController::getDataGenerator(const QString& value)
 
 void PerfGraphViewController::onWheelScaled(const qreal& ratio, const QPointF& point)
 {
-    if(mControllerList.isEmpty())
+    if(mCtl.isEmpty())
         return;
 
     auto singleController = getTopController();
@@ -153,7 +128,7 @@ void PerfGraphViewController::onWheelScaled(const qreal& ratio, const QPointF& p
     }
 
     if(currentDisplayingCount != scaledNumber){
-        for(auto controller: mControllerList){
+        for(auto controller: mCtl){
             controller->sliderMove(leftSliderMoveStride, true, zoomIn);
             controller->sliderMove(rightSliderMoveStride, false, !zoomIn);
         }
@@ -165,7 +140,7 @@ void PerfGraphViewController::onWheelScaled(const qreal& ratio, const QPointF& p
 
 void PerfGraphViewController::onLeftKeyPressed()
 {
-    if(mControllerList.isEmpty())
+    if(mCtl.isEmpty())
         return;
 
     auto singleController = getTopController();
@@ -179,7 +154,7 @@ void PerfGraphViewController::onLeftKeyPressed()
         return;
     }
 
-    for (auto controller: mControllerList)
+    for (auto controller: mCtl)
     {
         controller->integralMove(dataStride, false);
     }
@@ -187,7 +162,7 @@ void PerfGraphViewController::onLeftKeyPressed()
 
 void PerfGraphViewController::onRightKeyPressed()
 {
-    if(mControllerList.isEmpty())
+    if(mCtl.isEmpty())
         return;
 
     auto singleController = getTopController();
@@ -201,7 +176,7 @@ void PerfGraphViewController::onRightKeyPressed()
         return;
     }
 
-    for (auto& controller: mControllerList)
+    for (auto& controller: mCtl)
     {
         controller->integralMove(dataStride, true);
     }
@@ -209,14 +184,14 @@ void PerfGraphViewController::onRightKeyPressed()
 
 void PerfGraphViewController::onSliderPositionChanged(int position)
 {
-    for (auto& controller: mControllerList)
+    for (auto& controller: mCtl)
     {
         controller->integralMoveTo(position);
     }
 }
 void PerfGraphViewController::onSplitterDragging(int stride, bool left, bool forward)
 {
-    for(auto controller: mControllerList){
+    for(auto controller: mCtl){
         controller->sliderMove(stride, left, forward);
     }
 }
@@ -227,11 +202,13 @@ void PerfGraphViewController::onPinButtonToggled(const QString& key, const QStri
     {
         if(checked)
         {
-            mListModel->appendChannelData(key + "_on", value);
+            mListModel->appendChannelData(key, value);
         }
         else {
-            mListModel->removeChannelData(key + "_on");
+            mListModel->removeChannelData(key);
         }
+        mChannelStatus[key] = checked;
+        mControllerList[key]->updatePinStatus(checked, true);
     }
     else{
         if(checked)
@@ -240,6 +217,12 @@ void PerfGraphViewController::onPinButtonToggled(const QString& key, const QStri
         }
         else {
             mListModel->removeChannelData(key);
+            mChannelStatus[key] = false;
+
+            if(mControllerList.find(key) != mControllerList.end())
+            {
+                mControllerList[key]->updatePinStatus(false, false);
+            }
         }
     }
 }
@@ -259,4 +242,47 @@ SingleChannelController* PerfGraphViewController::getTopController()
         }
     }
     return mTopController;
+}
+
+void PerfGraphViewController::__registerSingleChannelController(ControllerList& dst, const QString& key, SingleChannelController* controller)
+{
+    if(!key.isEmpty() && controller->getDataGenerator() != nullptr)
+    {
+        if(dst.find(key) == dst.end())
+        {
+            dst[key] = controller;
+            controller->setKey(key);
+
+            InitialStatus status;
+            status.dataCount = dst.isEmpty() ? -1 : getTopController()->getTotalRange();
+            status.pinding = mChannelStatus.find(key) == mChannelStatus.end() ? false : mChannelStatus[key];
+
+            controller->loadInitialDatas(status);
+
+            if(!dst.isEmpty())
+            {
+                controller->integralMoveTo(getTopController()->getRangeStartPosition());
+                controller->zoomTo(getTopController()->getDisplayingDataCount());
+            }
+            mCtl.append(controller);
+        }
+        else {
+            qDebug() << "the key is duplicated :" << key;
+        }
+    }
+}
+
+void PerfGraphViewController::__unRegisterSingleChannelController(ControllerList& dst, const QString& key)
+{
+    auto itr = dst.find(key);
+    if(itr != dst.end())
+    {
+        if(itr.value() == mTopController)
+        {
+            mTopController = nullptr;
+            emit topControllerChanged();
+        }
+        mCtl.removeAll(itr.value());
+        dst.erase(itr);
+    }
 }

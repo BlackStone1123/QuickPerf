@@ -110,6 +110,7 @@ Item {
                property bool selected: false
                property int itemChildCount: root.model.rowCount(currentIndex)
                readonly property int depth: root.model.depth(currentIndex)
+               readonly property string path: root.model.path(currentIndex)
                readonly property bool hasChildren: itemChildCount > 0
                readonly property bool isSelectedIndex: root.selectionEnabled && currentIndex === root.selectedIndex
                readonly property bool isHoveredIndex: root.hoverEnabled && currentIndex === root.hoveredIndex
@@ -123,7 +124,7 @@ Item {
                target: root.model
                ignoreUnknownSignals: true
                function onLayoutChanged() {
-                   const parent = root.model.index(model.index, 0, parentIndex)
+                   const parent = root.model.index(index, 0, parentIndex)
                   _prop.itemChildCount = root.model.rowCount(parent)
                }
             }

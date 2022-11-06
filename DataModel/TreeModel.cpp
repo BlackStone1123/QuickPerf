@@ -158,6 +158,17 @@ int TreeModel::depth(const QModelIndex& index) const
    return count;
 }
 
+QString TreeModel::path(const QModelIndex& index) const
+{
+    QString res;
+    QModelIndex anchestor = index;
+
+    while (anchestor.isValid()) {
+        res.append("_" + QString::number(anchestor.row()));
+        anchestor = anchestor.parent();
+    }
+    return res;
+}
 void TreeModel::clear()
 {
    emit layoutAboutToBeChanged();

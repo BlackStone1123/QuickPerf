@@ -12,11 +12,12 @@ Item {
     property alias spacing: contentRow.spacing
     property alias rightCompVisible: barset.visible
     property alias barColor: barset.barColor
-    property alias pinButtonChecked: pinButton.checked
 
-    property var key: null
-    property var value: null
+    property string key: null
+    property string value: null
+
     property bool pinButtonVisible: false
+    property bool listChannel: false
 
     signal pinButtonToggled(bool checked)
 
@@ -36,7 +37,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
 
-                text: key
+                text: key.substring(0, key.indexOf("//"))
                 font.pixelSize: 12
                 font.family: "Times"
 
@@ -84,11 +85,18 @@ Item {
             anchors.bottom: parent.bottom
 
             Component.onCompleted: {
-                graphController.registerSingleChannelController(key, barset.controller);
+                graphController.registerSingleChannelController(key, barset.controller, listChannel);
             }
 
             Component.onDestruction: {
-                graphController.unRegisterSingleChannelController(key);
+                graphController.unRegisterSingleChannelController(key, listChannel);
+            }
+        }
+
+        Connections{
+            target: barset.controller
+            onPindingUpdated:{
+                pinButton.checked = barset.controller.pinding
             }
         }
     }

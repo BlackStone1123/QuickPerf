@@ -3,6 +3,7 @@ import QtQuick.Layouts 1.0
 import QtQuick.Controls 1.4
 import QtQuick.Controls.Styles 1.4
 import com.biren.dataModel 1.0
+import QtQml 2.12
 
 FocusScope{
     id: root
@@ -67,8 +68,10 @@ FocusScope{
             Layout.preferredHeight: channelHeight * count
             Layout.fillWidth: true
             Layout.topMargin: 90
+            focus: true
 
             model: graphController.listModel
+            interactive: false
 
             delegate: Channel{
                 id: listChannel
@@ -80,8 +83,8 @@ FocusScope{
                 spacing: handleComp.width
 
                 rightCompVisible: true
-                pinButtonChecked: true
                 barColor: "orangered"
+                listChannel: true
 
                 key: model.Label
                 value: model.ColumnName
@@ -108,8 +111,6 @@ FocusScope{
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            focus: true
-
             PerfTreeView{
                 id: graphTreeView
 
@@ -125,7 +126,6 @@ FocusScope{
                 hoverEnabled: true
 
                 model: graphController.graphModel
-
                 contentItem: Item {
                     id: content
 
@@ -149,16 +149,36 @@ FocusScope{
                         rightWidth: rightArea.width
                         spacing: handleComp.width
 
+                        listChannel: false
                         rightCompVisible: !currentRow.expanded
                         pinButtonVisible: !currentRow.hasChildren && currentRow.isHoveredIndex
                         barColor: currentRow.depth === 0 ? "lightseagreen" : currentRow.depth === 1 ? "mediumpurple" : currentRow.depth ===  2 ? "orange" : "orangered"
 
-                        key: currentRow.currentData.key
+                        key: currentRow.currentData.key + "//Path" + currentRow.path
                         value: currentRow.currentData.value
 
                         anchors.fill: parent
                         onPinButtonToggled: {
                             graphController.onPinButtonToggled(channel.key, channel.value, checked, true)
+                        }
+                    }
+
+                    Timer{
+                        id: changeDepthTimer
+                        interval: 500
+                        triggeredOnStart: false
+                        repeat: false
+                        onTriggered: {
+                            var pos = currentRow.currentItem.mapToItem(graphTreeView, 0, 0)
+                            console.log(channel.key, pos.y)
+                        }
+                    }
+
+                    Connections{
+                        target: graphTreeView
+
+                        onContentHeightChanged:{
+                            changeDepthTimer.start();
                         }
                     }
                 }
@@ -274,12 +294,6 @@ FocusScope{
         }
         else if(event.key === Qt.Key_D){
             graphController.onRightKeyPressed()
-        }
-        else if(event.key === Qt.Key_W){
-            graphListView.decrementCurrentIndex()
-        }
-        else if(event.key === Qt.Key_S){
-            graphListView.incrementCurrentIndex()
         }
     }
 }

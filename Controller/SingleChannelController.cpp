@@ -33,7 +33,20 @@ void SingleChannelController::appendDatas(const QList<qreal>& datasToAppend)
     }
 }
 
-void SingleChannelController::loadInitialDatas(int count)
+void SingleChannelController::updatePinStatus(bool pined, bool fromUI)
+{
+    if(pined != mPinding)
+    {
+        mPinding = pined;
+
+        if(!fromUI)
+        {
+            emit pindingUpdated();
+        }
+    }
+}
+
+void SingleChannelController::loadInitialDatas(const InitialStatus& status)
 {
     if(mGenerator == nullptr)
         return;
@@ -44,7 +57,10 @@ void SingleChannelController::loadInitialDatas(int count)
     mLoaderType = mDisplayingDataCount > MAXIMUM_RECTANGLE_DISPLAYING_DATA_COUNT ? PointSet : Rectangle;
     emit loaderTypeChanged();
 
-    mTotalRange = count > 0 ? count : mTotalRange;
+    mPinding = status.pinding;
+    emit pindingUpdated();
+
+    mTotalRange = status.dataCount > 0 ? status.dataCount : mTotalRange;
     startLoading( mTotalRange );
 }
 

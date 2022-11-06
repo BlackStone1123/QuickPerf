@@ -15,12 +15,13 @@ class PerfGraphViewController : public QObject
 
 public:
     using ControllerList = QMap<QString, QPointer<SingleChannelController>>;
+    using ChannelPinStatus = QMap<QString, bool>;
 
     PerfGraphViewController(QObject* parent = nullptr);
     virtual ~PerfGraphViewController();
 
-    Q_INVOKABLE void registerSingleChannelController(const QString& key, SingleChannelController*);
-    Q_INVOKABLE void unRegisterSingleChannelController(const QString& key);
+    Q_INVOKABLE void registerSingleChannelController(const QString& key, SingleChannelController*, bool up);
+    Q_INVOKABLE void unRegisterSingleChannelController(const QString& key, bool up);
     Q_INVOKABLE DataGenerator* getDataGenerator(const QString& value);
     SingleChannelController* getTopController();
 
@@ -39,8 +40,14 @@ public slots:
     void onPinButtonToggled(const QString& key, const QString& value, bool checked, bool down);
 
 private:
+    void __registerSingleChannelController(ControllerList& dst, const QString& key, SingleChannelController*);
+    void __unRegisterSingleChannelController(ControllerList& dst, const QString& key);
+
     SingleChannelController* mTopController {nullptr};
     ControllerList mControllerList;
+    ControllerList mUpControllerList;
+    QList<QPointer<SingleChannelController>> mCtl;
+    ChannelPinStatus mChannelStatus;
 
     QPointer<ChannelDataModel> mListModel;
     QPointer<TreeModel> mTreeModel;

@@ -4,11 +4,19 @@
 
 class DataGenerator;
 class RectangleViewModel;
+
+struct InitialStatus
+{
+    bool pinding{false};
+    int dataCount{-1};
+};
+
 class SingleChannelController: public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QList<qreal> bundle MEMBER mAmplitudes NOTIFY bundleUpdated)
     Q_PROPERTY(bool loading MEMBER mLoading NOTIFY loadingUpdated)
+    Q_PROPERTY(bool pinding MEMBER mPinding NOTIFY pindingUpdated)
     Q_PROPERTY(int displayingDataCount MEMBER mDisplayingDataCount NOTIFY displayingDataCountChanged)
     Q_PROPERTY(int rangeStartPos MEMBER mRangeStartPos NOTIFY rangeStartPosChanged)
     Q_PROPERTY(LoaderType loaderType MEMBER mLoaderType NOTIFY loaderTypeChanged)
@@ -26,7 +34,7 @@ public:
     explicit SingleChannelController(QObject* parent = nullptr);
     virtual ~SingleChannelController();
 
-    void loadInitialDatas(int count = -1);
+    void loadInitialDatas(const InitialStatus& status);
     void startLoading(size_t loadSize);
 
     DataGenerator* getDataGenerator() const { return mGenerator; }
@@ -36,6 +44,7 @@ public:
     void integralMoveTo(int pos);
     void sliderMove(int count, bool left, bool forward);
     void zoomTo(size_t count);
+    void updatePinStatus(bool pined, bool fromUI);
 
     int requestForMoveStride(size_t preferSize, bool forward);
     int requestForZoomStride(size_t count);
@@ -50,6 +59,7 @@ public:
 signals:
     void bundleUpdated();
     void loadingUpdated();
+    void pindingUpdated();
     void loaderTypeChanged();
     void barSetModelChanged();
     void dataGeneratorChanged();
@@ -71,6 +81,7 @@ private:
     RectangleViewModel* mBarSetModel {nullptr};
 
     bool mLoading {false};
+    bool mPinding {false};
     int mPendingLoading{0};
     LoaderType mLoaderType {PointSet};
 
