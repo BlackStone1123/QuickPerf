@@ -11,10 +11,12 @@ Item {
     property alias rightWidth: barset.width
     property alias spacing: contentRow.spacing
     property alias rightCompVisible: barset.visible
-    property alias barColor: barset.barColor
 
     property string key: null
     property string value: null
+
+    property color barColor: "red"
+    property color labelColor: "black"
 
     property bool pinButtonVisible: false
     property bool listChannel: false
@@ -41,7 +43,7 @@ Item {
                 font.pixelSize: 12
                 font.family: "Times"
 
-                color: barset.visible ? "black" : "white"
+                color: labelColor
                 elide: Text.ElideRight
             }
 
@@ -80,6 +82,7 @@ Item {
             id: barset
 
             dataGenerator: graphController.getDataGenerator(value)
+            barColor: root.barColor
 
             anchors.top: parent.top
             anchors.bottom: parent.bottom

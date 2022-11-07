@@ -14,7 +14,6 @@ SingleChannelController::SingleChannelController(QObject* parent)
 
 SingleChannelController::~SingleChannelController()
 {
-    qDebug() << "SingleChannelController deletion";
 }
 
 void SingleChannelController::appendDatas(const QList<qreal>& datasToAppend)
@@ -192,7 +191,7 @@ void SingleChannelController::rebase()
 
         if(rebase)
         {
-            qDebug() << "Rebase rectangle model offset:"<< mRangeStartPos;
+            //qDebug() << "Rebase rectangle model offset:"<< mRangeStartPos;
             mBarSetModel->setBaseOffset(mRangeStartPos);
         }
     }

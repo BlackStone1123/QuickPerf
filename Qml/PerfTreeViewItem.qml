@@ -26,7 +26,6 @@ Item {
    property int rowSpacing: 6
 
    property color color: "black"
-   property color handleColor: color
    property color hoverColor: "lightgray"
    property color selectedColor: "silver"
    property color selectedItemColor: color
@@ -60,7 +59,7 @@ Item {
          anchors.centerIn: parent
          text: defaultIndicator
          antialiasing: true
-         color: currentRow.expanded ? "white" : "black"
+         color: currentRow.handleColor
       }
    }
 
@@ -103,6 +102,7 @@ Item {
             QtObject {
                id: _prop
 
+               property color handleColor: "black"
                property var currentIndex: root.model.index(index, 0, parentIndex)
                property var currentData: root.model.data(currentIndex)
                property Item currentItem: repeater.itemAt(index)
@@ -254,7 +254,6 @@ Item {
                Binding { target: root; property: "selectedIndex"; value: loader.item.selectedIndex; when: loader.status == Loader.Ready }
 
                Binding { target: loader.item; property: "color"; value: root.color; when: loader.status == Loader.Ready }
-               Binding { target: loader.item; property: "handleColor"; value: root.handleColor; when: loader.status == Loader.Ready }
                Binding { target: loader.item; property: "hoverEnabled"; value: root.hoverEnabled; when: loader.status == Loader.Ready }
                Binding { target: loader.item; property: "hoverColor"; value: root.hoverColor; when: loader.status == Loader.Ready }
                Binding { target: loader.item; property: "selectionEnabled"; value: root.selectionEnabled; when: loader.status == Loader.Ready }

@@ -24,7 +24,6 @@ Flickable {
     property alias hoverEnabled: tree.hoverEnabled
 
     property alias color: tree.color
-    property alias handleColor: tree.handleColor
     property alias hoverColor: tree.hoverColor
     property alias selectedColor: tree.selectedColor
     property alias selectedItemColor: tree.selectedItemColor
@@ -64,7 +63,6 @@ Flickable {
 
         itemLeftPadding: 0
         color: root.color
-        handleColor: root.handleColor
         hoverColor: root.hoverColor
         selectedColor: root.selectedColor
         selectedItemColor: root.selectedItemColor

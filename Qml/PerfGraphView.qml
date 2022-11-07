@@ -130,13 +130,20 @@ FocusScope{
                     id: content
 
                     property var leftPadding: graphTreeView.rowPadding * currentRow.depth + 15
+                    property var pixelDepth: 0
+                    property bool inPort: (pixelDepth + channelHeight > 0) && (pixelDepth < graphTreeView.height)
+                    property bool showPlaceHolder: currentRow.depth === 0 && currentRow.expanded
+
+                    onShowPlaceHolderChanged: {
+                        currentRow.handleColor = showPlaceHolder ? "white" : "black"
+                    }
 
                     Rectangle{
                         id: placeHolder
 
                         x: -leftPadding
                         width: root.width
-                        color: currentRow.expanded ? "black" : "transparent"
+                        color: content.showPlaceHolder ? "black" : "transparent"
 
                         anchors.top: parent.top
                         anchors.bottom: parent.bottom
@@ -150,8 +157,9 @@ FocusScope{
                         spacing: handleComp.width
 
                         listChannel: false
-                        rightCompVisible: !currentRow.expanded
+                        rightCompVisible: !currentRow.expanded && content.inPort
                         pinButtonVisible: !currentRow.hasChildren && currentRow.isHoveredIndex
+                        labelColor: content.showPlaceHolder ? "white" : "black"
                         barColor: currentRow.depth === 0 ? "lightseagreen" : currentRow.depth === 1 ? "mediumpurple" : currentRow.depth ===  2 ? "orange" : "orangered"
 
                         key: currentRow.currentData.key + "//Path" + currentRow.path
@@ -169,16 +177,21 @@ FocusScope{
                         triggeredOnStart: false
                         repeat: false
                         onTriggered: {
-                            var pos = currentRow.currentItem.mapToItem(graphTreeView, 0, 0)
-                            console.log(channel.key, pos.y)
+                            pixelDepth = currentRow.currentItem.mapToItem(graphTreeView, 0, 0).y
                         }
                     }
 
                     Connections{
                         target: graphTreeView
-
                         onContentHeightChanged:{
-                            changeDepthTimer.start();
+                            changeDepthTimer.start()
+                        }
+                    }
+
+                    Connections{
+                        target: graphTreeView
+                        onContentYChanged:{
+                            changeDepthTimer.start()
                         }
                     }
                 }
