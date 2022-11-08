@@ -39,7 +39,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
 
-                text: key.substring(0, key.indexOf("//"))
+                text: listChannel ? value : key.substring(0, key.indexOf("//"))
                 font.pixelSize: 12
                 font.family: "Times"
 
