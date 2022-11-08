@@ -95,7 +95,7 @@ DataGenerator* PerfGraphViewController::getDataGenerator(const QString& value)
     if(value.isEmpty())
         return nullptr;
 
-    DataGenerator* pGenerator = ExcelDataCenter::creatDataGenerator(value);
+    DataGenerator* pGenerator = ExcelDataCenter::creatDataGenerator(DataType::Count, value);
 
     if(pGenerator)
     {

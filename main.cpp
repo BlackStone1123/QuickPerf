@@ -16,7 +16,11 @@ int main(int argc, char *argv[])
     mainController.initialize();
 
     QDir dir("spc_0_0_by_cycle_range.xlsx");
-    ExcelDataCenter dataCenter(2794,  dir.absolutePath(), &app);
+    ExcelWorker counterWorker(2794,  dir.absolutePath(), &app);
+
+    ExcelDataCenter dataCenter(&app);
+    dataCenter.addWorker(DataType::Count, &counterWorker);
+
     auto pView = mainController.createQuickView(QStringLiteral("qrc:/Qml/main.qml"), 800, 610);
     if(pView)
     {

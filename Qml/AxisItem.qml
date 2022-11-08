@@ -4,10 +4,10 @@ import QtQuick.Layouts 1.0
 Rectangle {
     id: root
 
-    property var secondTickCount: 9
     property int beginIndex: 0
     property real totalCount: 2000
     property real displayingCount: 100
+
     property bool dragging: sliderArea.drag.active
     property bool leftSplitterDragging: leftSplitter.dragging
     property bool rightSplitterDragging: rightSpliter.dragging
@@ -15,8 +15,29 @@ Rectangle {
     signal sliderBeginIndexChanged(int position)
     signal leftSplitterMoved(int range, bool forward)
     signal rightSplitterMoved(int range, bool forward)
+    signal bottomTickPositionChanged(var pos)
 
-    implicitHeight: 90
+    implicitHeight: 100
+
+
+    QtObject{
+        id: _prop
+
+        readonly property var unitStr: ["ps", "ns", "us", "ms", "s"]
+        function getTickNumber(index)
+        {
+            var num = index * 400;
+            var scale = 0;
+
+            while(num >= 1000)
+            {
+                num = num / 1000;
+                scale++;
+            }
+
+            return num.toFixed(1) + unitStr[scale];
+        }
+    }
 
     Component{
         id: tickBlockComp
@@ -25,6 +46,8 @@ Rectangle {
             id: tickBlock
 
             anchors.fill: parent
+            readonly property int secondTickCount: 9
+
             Rectangle{
                 id: major
 
@@ -34,14 +57,24 @@ Rectangle {
                 color: "black"
             }
 
+            Text {
+                id: numLabel
+                text: tickNumber
+                anchors{
+                    left: major.right
+                    bottom: parent.bottom
+                    leftMargin: 2
+                }
+            }
+
             Repeater{
                 id: secondaryRepeater
 
-                model: secondTickCount
+                model: tickBlock.secondTickCount
                 delegate: Rectangle{
                     id: secondTick
 
-                    x: (index+1) * (tickBlock.width) /(secondTickCount + 1)
+                    x: (index+1) * (tickBlock.width) /(tickBlock.secondTickCount + 1)
                     width: 1
                     height: tickBlock.height / 3
                     anchors.top: parent.top
@@ -106,6 +139,7 @@ Rectangle {
         id: verLayout
 
         anchors.fill: parent
+        spacing: 0
 
         Item{
             id: topTickItem
@@ -125,6 +159,8 @@ Rectangle {
                     model: 10
                     delegate: Loader{
                         id: tickBlockLoader
+
+                        property var tickNumber: _prop.getTickNumber(index * root.totalCount / tickBlockRepeater.count)
 
                         Layout.fillHeight: true
                         Layout.fillWidth: true
@@ -251,6 +287,82 @@ Rectangle {
                     }
 
                     rightSpliter.currentX = x;
+                }
+            }
+        }
+
+        Item{
+            id: bottomTick
+
+            Layout.fillWidth: true
+            Layout.preferredHeight: 30
+
+            readonly property int batchSize: root.displayingCount / 10
+            readonly property real batchBlockSize: batchSize * root.width / displayingCount
+
+            function getTickPosition(index)
+            {
+                var beginPos = beginIndex * root.width / root.displayingCount
+                var firstTickPos = bottomTick.batchBlockSize * Math.ceil(root.beginIndex / bottomTick.batchSize)
+
+                if(index === 0)
+                    return firstTickPos - beginPos;
+
+                return bottomTickRepeater.itemAt(index-1).x + bottomTick.batchBlockSize
+            }
+
+            Text {
+                id: baseTick
+                text: _prop.getTickNumber(root.beginIndex)
+                x: -50
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Repeater{
+                id: bottomTickRepeater
+                model: Math.ceil(root.width / bottomTick.batchBlockSize)
+
+                delegate: Item{
+                    id: tickItem
+
+                    width: 18
+                    height: 30
+                    x: bottomTick.getTickPosition(index)
+                    y: 0
+
+                    Rectangle{
+                        id: tick
+
+                        width: 1
+                        anchors{
+                            left: parent.left
+                            top: parent.top
+                            bottom: parent.bottom
+                        }
+                        color: "black"
+                    }
+
+                    Text {
+                        id: numLabel
+                        text: "+" + _prop.getTickNumber(bottomTick.batchSize * (Math.ceil(root.beginIndex / bottomTick.batchSize) + index) - root.beginIndex)
+                        anchors{
+                            left: tick.right
+                            right: parent.right
+                            leftMargin: 2
+                        }
+                    }
+
+                    onXChanged: {
+                        if(index === bottomTickRepeater.count - 1){
+                            var pos = [];
+                            for(var i = 0; i<bottomTickRepeater.count; i++)
+                            {
+                                pos.push(bottomTickRepeater.itemAt(i).x)
+                            }
+
+                            root.bottomTickPositionChanged(pos);
+                        }
+                    }
                 }
             }
         }

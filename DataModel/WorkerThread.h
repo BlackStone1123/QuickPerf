@@ -4,7 +4,6 @@
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
-#include <random>
 
 struct GenParam
 {
@@ -22,6 +21,7 @@ public:
     virtual ~WorkerThread();
 
     virtual QVariant generate(const QString& column, size_t from, size_t number);
+    virtual size_t getBackEndDataSize() const {return 0;}
 
 signals:
     void dataLoadFinished(const QString& columnName, const QVariant&);
@@ -40,17 +40,3 @@ private:
     bool mRestart{false};
     bool mAbort{false};
 };
-
-//class RandomDataGenerator: public DataGenerator
-//{
-//public:
-//    RandomDataGenerator(QObject* parent);
-//    virtual ~RandomDataGenerator();
-//    virtual size_t getBackEndDataSize() const override { return 20000; }
-
-//private:
-//    virtual QVariant kernelFunc(const QString& column, size_t from, size_t number) override;
-
-//private:
-//    std::default_random_engine mRandomEng;
-//};

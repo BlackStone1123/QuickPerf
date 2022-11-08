@@ -2,8 +2,6 @@
 #include <QDebug>
 #include <QMutexLocker>
 
-static unsigned long rseed = 10;
-
 WorkerThread::WorkerThread(QObject* parent)
     : QThread(parent)
 {
@@ -82,32 +80,3 @@ void WorkerThread::exit()
 
     wait();
 }
-
-////////////////////////////////////////////////////////////////////
-//QVariant RandomDataGenerator::kernelFunc(const QString& column, size_t from, size_t number)
-//{
-//    QList<qreal> res;
-
-//    std::normal_distribution<float> distribution(40.0, 10.0);
-
-//    for (size_t j = 0; j < number; j++)
-//    {
-//        res << distribution(mRandomEng);
-//    }
-
-//    return QVariant::fromValue(res);
-//}
-
-//RandomDataGenerator::~RandomDataGenerator()
-//{
-//    DataGenerator::exit();
-//    std::cout << "random data gen deletion!" << std::endl;
-//}
-
-//RandomDataGenerator::RandomDataGenerator(QObject* parent)
-//    : DataGenerator(parent)
-//{
-//    mRandomEng.seed( rseed );
-//    rseed *= 100;
-//}
-///////////////////////////////////////////////////////////////

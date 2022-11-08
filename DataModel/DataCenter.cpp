@@ -1,9 +1,12 @@
 #include "DataCenter.h"
 #include <QAxObject>
 #include <QDebug>
+#include <QDir>
 #include <windows.h>
 
-static ExcelDataCenter* localGlobalDataCenter = nullptr;
+// static ExcelDataCenter* localGlobalDataCenter = nullptr;
+
+static ExcelDataCenter* s_global_data_center= nullptr;
 
 static QString indexToColumnLabel(int index)
 {
@@ -28,10 +31,10 @@ DataGenerator::DataGenerator(const QString& valueColumn, QObject* parent)
 
 void DataGenerator::generate(size_t number)
 {
-    if(mDataCenter)
+    if(mWorker)
     {
         qWarning() << "request data from column: " << mValue << " from: " << mFrom << "number: " << number;
-        mDataCenter->generate(mValue, mFrom, number);
+        mWorker->generate(mValue, mFrom, number);
         mFrom += number;
     }
 }
@@ -46,29 +49,27 @@ void DataGenerator::onDataLoadFinished(const QString& columnName, const QVariant
 
 size_t DataGenerator::getBackEndDataSize() const
 {
-    return mDataCenter->getBackEndDataSize();
+    return mWorker->getBackEndDataSize();
 }
 /////////////////////////////////////////////////////////////////////////////////////
-ExcelDataCenter::ExcelDataCenter(int rowCount, const QString& fileName, QObject* parent)
+ExcelWorker::ExcelWorker(int rowCount, const QString& fileName, QObject* parent)
     : WorkerThread(parent)
     , mRowCount(rowCount)
     , mFileName(fileName)
 {
-    localGlobalDataCenter = this;
 }
 
-ExcelDataCenter::~ExcelDataCenter()
+ExcelWorker::~ExcelWorker()
 {
     WorkerThread::exit();
 }
 
-size_t ExcelDataCenter::getBackEndDataSize() const
+size_t ExcelWorker::getBackEndDataSize() const
 {
     return mRowCount;
 }
 
-#include <QDir>
-QVariant ExcelDataCenter::kernelFunc(const QString& column, size_t from, size_t number)
+QVariant ExcelWorker::kernelFunc(const QString& column, size_t from, size_t number)
 {
     if(mExcel == nullptr)
     {
@@ -116,18 +117,41 @@ QVariant ExcelDataCenter::kernelFunc(const QString& column, size_t from, size_t 
     return QVariant::fromValue(res);
 }
 
-void ExcelDataCenter::onThreadFinished()
+void ExcelWorker::onThreadFinished()
 {
     mWorkBook->dynamicCall("Close()");
     mExcel->dynamicCall("Quit()");
     delete mExcel;
 }
-
-DataGenerator* ExcelDataCenter::creatDataGenerator(const QString& valueColumn)
+/////////////////////////////////////////////////////////////////////////////////////
+ExcelDataCenter::ExcelDataCenter(QObject* parent)
+    : QObject(parent)
 {
-    DataGenerator* pGen = new DataGenerator(valueColumn, localGlobalDataCenter);
-    pGen->mDataCenter = localGlobalDataCenter;
-    connect(localGlobalDataCenter, &ExcelDataCenter::dataLoadFinished, pGen, &DataGenerator::onDataLoadFinished);
+    s_global_data_center = this;
+}
+
+ExcelDataCenter::~ExcelDataCenter()
+{
+
+}
+
+void ExcelDataCenter::addWorker(DataType type, WorkerThread* worker)
+{
+    if(mWorkers.find(type) == mWorkers.end())
+    {
+        mWorkers[type] = worker;
+    }
+}
+
+DataGenerator* ExcelDataCenter::creatDataGenerator(DataType type, const QString& valueColumn)
+{
+    QPointer<WorkerThread> worker = s_global_data_center->mWorkers[type];
+    if(worker == nullptr)
+        return nullptr;
+
+    DataGenerator* pGen = new DataGenerator(valueColumn);
+    pGen->mWorker = worker;
+    connect(worker, &WorkerThread::dataLoadFinished, pGen, &DataGenerator::onDataLoadFinished);
 
     return pGen;
 }

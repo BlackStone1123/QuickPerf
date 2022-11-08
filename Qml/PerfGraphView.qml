@@ -39,18 +39,27 @@ FocusScope{
 
             width: rightArea.width
 
+            property var positions: []
             Repeater{
                 id: verSplitLineRepeater
 
-                model: 20
+                model: rightBack.positions
+
                 delegate: Rectangle{
                     id: splitLine
 
-                    x: index * (parent.width) / 20
+                    x: modelData
                     y: 0
                     width: 1
                     height: parent.height
                     color: "#d7d7d7"
+                }
+            }
+
+            Connections{
+                target: axisItem
+                onBottomTickPositionChanged:{
+                    rightBack.positions = pos;
                 }
             }
         }
@@ -67,7 +76,7 @@ FocusScope{
 
             Layout.preferredHeight: channelHeight * count
             Layout.fillWidth: true
-            Layout.topMargin: 90
+            Layout.topMargin: axisItem.height
             focus: true
 
             model: graphController.listModel
