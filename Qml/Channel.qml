@@ -78,28 +78,30 @@ Item {
             }
         }
 
+        SingleChannelController{
+            id: singleChannelController
+            dataGenerator: graphController.getDataGenerator(value)
+
+            onPindingUpdated:{
+                pinButton.checked = singleChannelController.pinding
+            }
+        }
+
         BarSetChannel{
             id: barset
 
-            dataGenerator: graphController.getDataGenerator(value)
+            channelController: singleChannelController
             barColor: root.barColor
 
             anchors.top: parent.top
             anchors.bottom: parent.bottom
 
             Component.onCompleted: {
-                graphController.registerSingleChannelController(key, barset.controller, listChannel);
+                graphController.registerSingleChannelController(key, channelController, listChannel);
             }
 
             Component.onDestruction: {
                 graphController.unRegisterSingleChannelController(key, listChannel);
-            }
-        }
-
-        Connections{
-            target: barset.controller
-            onPindingUpdated:{
-                pinButton.checked = barset.controller.pinding
             }
         }
     }

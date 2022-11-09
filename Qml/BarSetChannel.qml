@@ -11,9 +11,8 @@ Item{
 
     readonly property real __barSetWidth: getBarSetWidth()
     readonly property real __barWidth: root.width / channelController.displayingDataCount
-    readonly property SingleChannelController controller: channelController
 
-    property alias dataGenerator: channelController.dataGenerator
+    property SingleChannelController channelController: undefined
     property var barColor: "red"
 
     clip: true
@@ -60,10 +59,6 @@ Item{
                 anchors.centerIn: parent
             }
         }
-    }
-
-    SingleChannelController{
-        id: channelController
     }
 
     Loader{
