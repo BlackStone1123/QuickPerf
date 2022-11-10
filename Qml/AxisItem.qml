@@ -1,7 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.0
 
-Rectangle {
+Item {
     id: root
 
     property int beginIndex: 0
@@ -12,13 +12,18 @@ Rectangle {
     property bool leftSplitterDragging: leftSplitter.dragging
     property bool rightSplitterDragging: rightSpliter.dragging
 
+    property Component manipulateComp: Rectangle{
+        id: manipulateArea
+        color: "black"
+        width: 100
+        height: 100
+    }
+
     signal sliderBeginIndexChanged(int position)
     signal leftSplitterMoved(int range, bool forward)
     signal rightSplitterMoved(int range, bool forward)
     signal bottomTickPositionChanged(var pos)
-
-    implicitHeight: 100
-
+    signal bottomTagPositionChanged(var pos)
 
     QtObject{
         id: _prop
@@ -135,6 +140,47 @@ Rectangle {
         }
     }
 
+    Component{
+        id: tagComp
+
+        Item {
+            id: tag
+
+            implicitWidth: tagTop.width
+
+            property alias tagHeight: tagTop.height
+            property var pos: -1
+
+            Rectangle{
+                id: tagTop
+
+                width: 10
+                height: 10
+                color: "red"
+
+                anchors.top: parent.top
+            }
+
+            Rectangle{
+                id: tagLine
+
+                color: "black"
+                width: 2
+                height: manipulateLoader.height
+
+                anchors.top: tagTop.bottom
+                anchors.horizontalCenter: tagTop.horizontalCenter
+            }
+
+            Binding{
+                target: tag
+                property: "x"
+                value: (pos - root.beginIndex) * root.width / root.displayingCount - 5
+                when: pos >= 0
+            }
+        }
+    }
+
     ColumnLayout{
         id: verLayout
 
@@ -177,7 +223,7 @@ Rectangle {
             color: "#dcdcdc"
 
             Layout.fillWidth: true
-            Layout.fillHeight: true
+            Layout.preferredHeight: 50
 
             states: [
                 State{
@@ -365,6 +411,43 @@ Rectangle {
                     }
                 }
             }
+
+            Loader{
+                id: hoverTag
+
+                x: bottomHoverHdl.point.position.x - 5
+
+                anchors.top: parent.bottom
+                anchors.topMargin: -10
+                active: bottomHoverHdl.hovered
+
+                sourceComponent: tagComp
+            }
+
+            HoverHandler{
+                id: bottomHoverHdl
+            }
+
+            TapHandler{
+                id: bottomTopHdl
+
+                onTapped: {
+
+                    var stride = root.width / root.displayingCount;
+                    var index = root.beginIndex + bottomHoverHdl.point.position.x / stride
+
+                    tagComp.createObject(parent, {pos: index, anchors: {top: parent.bottom, topMargin: -10}})
+                }
+            }
+        }
+
+        Loader{
+            id: manipulateLoader
+
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            sourceComponent: manipulateComp
         }
     }
 }

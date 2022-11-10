@@ -76,7 +76,7 @@ FocusScope{
 
             Layout.preferredHeight: channelHeight * count
             Layout.fillWidth: true
-            Layout.topMargin: axisItem.height
+            Layout.topMargin: 100
             focus: true
 
             model: graphController.listModel
@@ -232,41 +232,19 @@ FocusScope{
             Layout.fillHeight: true
             Layout.fillWidth: true
 
-            ColumnLayout{
-                id: verLayout
+            AxisItem{
+                id: axisItem
+
+                property SingleChannelController firstChannelController: graphController.topController
+
+                totalCount: firstChannelController.getTotalDataCount()
+                displayingCount: firstChannelController.displayingDataCount
+                beginIndex: firstChannelController.rangeStartPos
 
                 anchors.fill: parent
-                spacing: 0
 
-                AxisItem{
-                    id: axisItem
-
-                    property SingleChannelController firstChannelController: graphController.topController
-
-                    totalCount: firstChannelController.getTotalDataCount()
-                    displayingCount: firstChannelController.displayingDataCount
-                    beginIndex: firstChannelController.rangeStartPos
-
-                    Layout.fillWidth: true
-
-                    onSliderBeginIndexChanged:{
-                        graphController.onSliderPositionChanged(position)
-                    }
-
-                    onLeftSplitterMoved: {
-                        graphController.onSplitterDragging(range, true, forward)
-                    }
-
-                    onRightSplitterMoved: {
-                        graphController.onSplitterDragging(range, false, forward)
-                    }
-                }
-
-                Item{
-                    id: manipulateArea
-
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
+                manipulateComp: Item {
+                    id: scrollItem
 
                     MouseArea{
                         id: scrollArea
@@ -286,6 +264,18 @@ FocusScope{
                             mouse.accepted = false
                         }
                     }
+                }
+
+                onSliderBeginIndexChanged:{
+                    graphController.onSliderPositionChanged(position)
+                }
+
+                onLeftSplitterMoved: {
+                    graphController.onSplitterDragging(range, true, forward)
+                }
+
+                onRightSplitterMoved: {
+                    graphController.onSplitterDragging(range, false, forward)
                 }
             }
         }
