@@ -24,6 +24,7 @@ public:
     DataGenerator(const QString& valueColumn, QObject* parent = nullptr);
     void generate(size_t number);
     size_t getBackEndDataSize() const;
+    DataType getDataType() const { return mType; }
 
 signals:
     void dataLoaded(const QVariant&);
@@ -34,6 +35,7 @@ private slots:
 private:
     QString mValue;
     size_t mFrom {0};
+    DataType mType{DataType::Count};
     WorkerThread* mWorker{nullptr};
 };
 

@@ -1,7 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.0
 
-Item {
+FocusScope {
     id: root
 
     property int beginIndex: 0
@@ -143,13 +143,24 @@ Item {
     Component{
         id: tagComp
 
-        Item {
+        FocusScope {
             id: tag
 
             implicitWidth: tagTop.width
 
             property alias tagHeight: tagTop.height
             property var pos: -1
+            property string inputText: "text"
+
+            visible: x >= 0
+
+            onActiveFocusChanged: {
+                if(activeFocus)
+                    tagLine.visible = true
+                else
+                    tagLine.visible = false
+            }
+
 
             Rectangle{
                 id: tagTop
@@ -170,6 +181,22 @@ Item {
 
                 anchors.top: tagTop.bottom
                 anchors.horizontalCenter: tagTop.horizontalCenter
+            }
+
+            TextInput{
+                id: input
+
+                x: 12
+                y: -4
+                width: 50
+                height: 20
+
+                text: inputText
+                focus: true
+
+                onAccepted: {
+                    manipulateLoader.forceActiveFocus()
+                }
             }
 
             Binding{
@@ -432,11 +459,14 @@ Item {
                 id: bottomTopHdl
 
                 onTapped: {
-
-                    var stride = root.width / root.displayingCount;
+                    // dynamically create a object when clicked
+                    var stride = root.width / root.displayingCount
                     var index = root.beginIndex + bottomHoverHdl.point.position.x / stride
 
-                    tagComp.createObject(parent, {pos: index, anchors: {top: parent.bottom, topMargin: -10}})
+                    var obj = tagComp.createObject(parent, {pos: index, showInputItem: true})
+                    obj.anchors.top = Qt.binding(function(){return parent.bottom})
+                    obj.anchors.topMargin = Qt.binding(function(){return -10})
+                    obj.forceActiveFocus()
                 }
             }
         }
@@ -447,6 +477,7 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
+            focus: true
             sourceComponent: manipulateComp
         }
     }

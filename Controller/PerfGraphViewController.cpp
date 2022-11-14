@@ -16,40 +16,48 @@
 #include "SingleChannelController.h"
 
 namespace  {
-
-    QString loadValue(const QJsonValue& value, TreeItem* parent)
+    void loadValue(const QJsonValue& value, TreeItem* parent, QString& tracker, QString& type)
     {
         if(value.isObject()) {
+
             auto object = value.toObject();
-            for(auto it=object.begin(); it!=object.end(); ++it){
-                JsonEntry entry;
-                entry.setKey(it.key());
-                if(it.value().isObject()){
-                    entry.setType(QJsonValue::Object);
-                    auto child = new TreeItem();
-                    entry.setValue(loadValue(it.value(), child));
-                    child->setData(QVariant::fromValue(entry));
-                    parent->appendChild(child);
-                }
-                else {
+            for(auto it=object.begin(); it!=object.end(); ++it)
+            {
+                if(it.value().isObject())
+                {
                     if(it.key() == "top")
                     {
-                        return it.value().toString();
+                        loadValue(it.value(), nullptr, tracker, type);
                     }
-                    entry.setType(QJsonValue::String);
-                    entry.setValue(it.value().toVariant());
-                    auto child = new TreeItem(QVariant::fromValue(entry));
-                    parent->appendChild(child);
+                    else
+                    {
+                        auto child = new TreeItem();
+
+                        QString tracker;
+                        QString type;
+                        loadValue(it.value(), child, tracker, type);
+
+                        JsonEntry entry;
+                        entry.setKey(it.key());
+                        entry.setValue(tracker);
+                        entry.setType(type);
+
+                        child->setData(QVariant::fromValue(entry));
+                        parent->appendChild(child);
+                    }
+                }
+                else {
+                    tracker = it.key() == "tracker" ? it.value().toString() : tracker;
+                    type = it.key() == "type" ? it.value().toString(): type;
                 }
             }
         }
-        return QString();
     }
 
     void populateTree(TreeItem* rootItem)
     {
         QFile jsonFile;
-        jsonFile.setFileName("pfa_test_config.json");
+        jsonFile.setFileName("pfa_test_config_2.json");
 
         if(!jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)){
             qCritical() << "error: json file cannot be open";
@@ -61,7 +69,10 @@ namespace  {
         qDebug() << "loading json file:" << error.errorString();
 
         auto root = doc.isArray() ? QJsonValue(doc.array()) : QJsonValue(doc.object());
-        loadValue(root, rootItem);
+
+        QString tracker;
+        QString type;
+        loadValue(root, rootItem, tracker, type);
     }
 
 }
@@ -90,12 +101,15 @@ void PerfGraphViewController::unRegisterSingleChannelController(const QString& c
     __unRegisterSingleChannelController(up ? mUpControllerList : mControllerList, columnName);
 }
 
-DataGenerator* PerfGraphViewController::getDataGenerator(const QString& value)
+DataGenerator* PerfGraphViewController::getDataGenerator(const QString& type, const QString& value)
 {
-    if(value.isEmpty())
+    if(value.isEmpty() || type.isEmpty())
         return nullptr;
 
-    DataGenerator* pGenerator = ExcelDataCenter::creatDataGenerator(DataType::Count, value);
+    DataGenerator* pGenerator = ExcelDataCenter::creatDataGenerator(
+                type == "Counter" ? DataType::Count :
+                type == "Event" ? DataType::Event:
+                DataType::Slice, value);
 
     if(pGenerator)
     {
@@ -254,7 +268,7 @@ void PerfGraphViewController::__registerSingleChannelController(ControllerList& 
             controller->setKey(key);
 
             InitialStatus status;
-            status.dataCount = dst.isEmpty() ? -1 : getTopController()->getTotalRange();
+            status.dataCount = getTopController()->getTotalRange();
             status.pinding = mChannelStatus.find(key) == mChannelStatus.end() ? false : mChannelStatus[key];
 
             controller->loadInitialDatas(status);

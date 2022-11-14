@@ -14,7 +14,8 @@ class PerfGraphViewController : public QObject
     Q_PROPERTY(SingleChannelController* topController MEMBER mTopController NOTIFY topControllerChanged)
 
 public:
-    using ControllerList = QMap<QString, QPointer<SingleChannelController>>;
+    using Controller = QPointer<SingleChannelController>;
+    using ControllerList = QMap<QString, Controller>;
     using ChannelPinStatus = QMap<QString, bool>;
 
     PerfGraphViewController(QObject* parent = nullptr);
@@ -22,7 +23,7 @@ public:
 
     Q_INVOKABLE void registerSingleChannelController(const QString& key, SingleChannelController*, bool up);
     Q_INVOKABLE void unRegisterSingleChannelController(const QString& key, bool up);
-    Q_INVOKABLE DataGenerator* getDataGenerator(const QString& value);
+    Q_INVOKABLE DataGenerator* getDataGenerator(const QString& type, const QString& value);
     SingleChannelController* getTopController();
 
 signals:
@@ -46,9 +47,12 @@ private:
     SingleChannelController* mTopController {nullptr};
     ControllerList mControllerList;
     ControllerList mUpControllerList;
-    QList<QPointer<SingleChannelController>> mCtl;
+    QList<Controller> mCtl;
     ChannelPinStatus mChannelStatus;
 
     QPointer<ChannelDataModel> mListModel;
     QPointer<TreeModel> mTreeModel;
+
+    Controller mCounterTopCtl;
+    Controller mEventTopCtl;
 };

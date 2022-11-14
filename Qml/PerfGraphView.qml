@@ -57,7 +57,7 @@ FocusScope{
             }
 
             Connections{
-                target: axisItem
+                target: rightArea
                 onBottomTickPositionChanged:{
                     rightBack.positions = pos;
                 }
@@ -77,7 +77,6 @@ FocusScope{
             Layout.preferredHeight: channelHeight * count
             Layout.fillWidth: true
             Layout.topMargin: 100
-            focus: true
 
             model: graphController.listModel
             interactive: false
@@ -97,6 +96,7 @@ FocusScope{
 
                 key: model.Label
                 value: model.ColumnName
+                type: "Counter"
 
                 x: padding
                 width: parent.width - padding
@@ -122,8 +122,6 @@ FocusScope{
 
             PerfTreeView{
                 id: graphTreeView
-
-                focus: true
 
                 rowPadding: 10
                 rowSpacing: 0
@@ -173,6 +171,7 @@ FocusScope{
 
                         key: currentRow.currentData.key + "//Path" + currentRow.path
                         value: currentRow.currentData.value
+                        type: currentRow.currentData.type
 
                         anchors.fill: parent
                         onPinButtonToggled: {
@@ -220,63 +219,58 @@ FocusScope{
             id: leftArea
 
             Layout.fillHeight: true
-            Layout.preferredWidth: 120
-            Layout.minimumWidth: 120
+            Layout.preferredWidth: 200
+            Layout.minimumWidth: 200
 
             color: "transparent"
         }
 
-        Item {
+        AxisItem{
             id: rightArea
+
+            property SingleChannelController firstChannelController: graphController.topController
+
+            totalCount: firstChannelController.getTotalDataCount()
+            displayingCount: firstChannelController.displayingDataCount
+            beginIndex: firstChannelController.rangeStartPos
 
             Layout.fillHeight: true
             Layout.fillWidth: true
+            focus: true
 
-            AxisItem{
-                id: axisItem
+            manipulateComp: Item {
+                id: scrollItem
 
-                property SingleChannelController firstChannelController: graphController.topController
+                MouseArea{
+                    id: scrollArea
+                    anchors.fill: parent
 
-                totalCount: firstChannelController.getTotalDataCount()
-                displayingCount: firstChannelController.displayingDataCount
-                beginIndex: firstChannelController.rangeStartPos
-
-                anchors.fill: parent
-
-                manipulateComp: Item {
-                    id: scrollItem
-
-                    MouseArea{
-                        id: scrollArea
-                        anchors.fill: parent
-
-                        onWheel: {
-                            if(root.activeFocus && (wheel.modifiers & Qt.ControlModifier)){
-                                graphController.onWheelScaled(wheel.x / parent.width, wheel.angleDelta)
-                                wheel.accepted = true
-                            }
-                            else{
-                                wheel.accepted = false
-                            }
+                    onWheel: {
+                        if(root.activeFocus && (wheel.modifiers & Qt.ControlModifier)){
+                            graphController.onWheelScaled(wheel.x / parent.width, wheel.angleDelta)
+                            wheel.accepted = true
                         }
-
-                        onPressed: {
-                            mouse.accepted = false
+                        else{
+                            wheel.accepted = false
                         }
                     }
-                }
 
-                onSliderBeginIndexChanged:{
-                    graphController.onSliderPositionChanged(position)
+                    onPressed: {
+                        mouse.accepted = false
+                    }
                 }
+            }
 
-                onLeftSplitterMoved: {
-                    graphController.onSplitterDragging(range, true, forward)
-                }
+            onSliderBeginIndexChanged:{
+                graphController.onSliderPositionChanged(position)
+            }
 
-                onRightSplitterMoved: {
-                    graphController.onSplitterDragging(range, false, forward)
-                }
+            onLeftSplitterMoved: {
+                graphController.onSplitterDragging(range, true, forward)
+            }
+
+            onRightSplitterMoved: {
+                graphController.onSplitterDragging(range, false, forward)
             }
         }
 

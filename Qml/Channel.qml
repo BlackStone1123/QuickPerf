@@ -14,6 +14,7 @@ Item {
 
     property string key: null
     property string value: null
+    property string type: null
 
     property color barColor: "red"
     property color labelColor: "black"
@@ -80,7 +81,7 @@ Item {
 
         SingleChannelController{
             id: singleChannelController
-            dataGenerator: graphController.getDataGenerator(value)
+            dataGenerator: graphController.getDataGenerator(type, value)
 
             onPindingUpdated:{
                 pinButton.checked = singleChannelController.pinding

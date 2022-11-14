@@ -20,12 +20,12 @@ QVariant JsonEntry::value() const
    return _value;
 }
 
-QJsonValue::Type JsonEntry::type() const
+QString JsonEntry::type() const
 {
    return _type;
 }
 
-void JsonEntry::setKey(QString key)
+void JsonEntry::setKey(const QString& key)
 {
    if (_key == key)
       return;
@@ -33,7 +33,7 @@ void JsonEntry::setKey(QString key)
    _key = key;
 }
 
-void JsonEntry::setValue(QVariant value)
+void JsonEntry::setValue(const QVariant& value)
 {
    if (_value == value)
       return;
@@ -41,7 +41,7 @@ void JsonEntry::setValue(QVariant value)
    _value = value;
 }
 
-void JsonEntry::setType(QJsonValue::Type type)
+void JsonEntry::setType(const QString& type)
 {
    if (_type == type)
       return;

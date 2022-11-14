@@ -31,7 +31,7 @@ DataGenerator::DataGenerator(const QString& valueColumn, QObject* parent)
 
 void DataGenerator::generate(size_t number)
 {
-    if(mWorker)
+    if(mWorker && !mValue.isEmpty())
     {
         qWarning() << "request data from column: " << mValue << " from: " << mFrom << "number: " << number;
         mWorker->generate(mValue, mFrom, number);
@@ -151,6 +151,7 @@ DataGenerator* ExcelDataCenter::creatDataGenerator(DataType type, const QString&
 
     DataGenerator* pGen = new DataGenerator(valueColumn);
     pGen->mWorker = worker;
+    pGen->mType = type;
     connect(worker, &WorkerThread::dataLoadFinished, pGen, &DataGenerator::onDataLoadFinished);
 
     return pGen;
