@@ -31,7 +31,7 @@ FocusScope {
         readonly property var unitStr: ["ps", "ns", "us", "ms", "s"]
         function getTickNumber(index)
         {
-            var num = index * 400;
+            var num = index * 4;
             var scale = 0;
 
             while(num >= 1000)

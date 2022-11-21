@@ -6,12 +6,14 @@ class ChannelDataModel;
 class TreeModel;
 class SingleChannelController;
 class DataGenerator;
+class CycleRangeConverter;
 class PerfGraphViewController : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(TreeModel* graphModel MEMBER mTreeModel NOTIFY treeModelChanged)
     Q_PROPERTY(ChannelDataModel* listModel MEMBER mListModel NOTIFY listModelChanged)
-    Q_PROPERTY(SingleChannelController* topController MEMBER mTopController NOTIFY topControllerChanged)
+    Q_PROPERTY(CycleRangeConverter* rangeConverter MEMBER mRangeConverter NOTIFY rangeConverterChanged)
+    Q_PROPERTY(int totalCycleRange MEMBER mTotalCycleRange NOTIFY totalCycleRangeChanged)
 
 public:
     using Controller = QPointer<SingleChannelController>;
@@ -23,14 +25,14 @@ public:
 
     Q_INVOKABLE void registerSingleChannelController(const QString& key, SingleChannelController*, bool up);
     Q_INVOKABLE void unRegisterSingleChannelController(const QString& key, bool up);
-    Q_INVOKABLE DataGenerator* getDataGenerator(const QString& type, const QString& value);
-    SingleChannelController* getTopController();
+    Q_INVOKABLE DataGenerator* getDataGenerator(const QString& key, const QString& type, const QString& value);
+    Q_INVOKABLE CycleRangeConverter* getRangeConverter(const QString& type);
 
 signals:
     void treeModelChanged();
     void listModelChanged();
-    void insertRowBefore(int index);
-    void topControllerChanged();
+    void totalCycleRangeChanged();
+    void rangeConverterChanged();
 
 public slots:
     void onWheelScaled(const qreal& , const QPointF&);
@@ -38,13 +40,15 @@ public slots:
     void onRightKeyPressed();
     void onSliderPositionChanged(int position);
     void onSplitterDragging(int stride,bool left, bool forward);
-    void onPinButtonToggled(const QString& key, const QString& value, bool checked, bool down);
+    void onPinButtonToggled(const QString& key, const QString& value, const QString& type, bool checked, bool down);
 
 private:
+    int requestForMoveStride(size_t preferSize, bool forward);
+    int requestForZoomStride(size_t count);
+
     void __registerSingleChannelController(ControllerList& dst, const QString& key, SingleChannelController*);
     void __unRegisterSingleChannelController(ControllerList& dst, const QString& key);
 
-    SingleChannelController* mTopController {nullptr};
     ControllerList mControllerList;
     ControllerList mUpControllerList;
     QList<Controller> mCtl;
@@ -52,7 +56,7 @@ private:
 
     QPointer<ChannelDataModel> mListModel;
     QPointer<TreeModel> mTreeModel;
+    QPointer<CycleRangeConverter> mRangeConverter;
 
-    Controller mCounterTopCtl;
-    Controller mEventTopCtl;
+    size_t mTotalCycleRange{279400};
 };

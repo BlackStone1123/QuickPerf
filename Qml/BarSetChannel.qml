@@ -6,14 +6,17 @@ Item{
     id: root
 
     function getBarSetWidth(){
-        return Math.max(0, Math.min(root.width, __barWidth * (channelController.bundle.length - channelController.rangeStartPos)))
+        return Math.max(0, Math.min(root.width, __barWidth * (channelController.bundle.length - channelController.rangeConverter.rangeStartPos)))
     }
 
     readonly property real __barSetWidth: getBarSetWidth()
-    readonly property real __barWidth: root.width / channelController.displayingDataCount
+    readonly property real __barWidth: __cycleWidth * channelController.rangeConverter.scale
+    readonly property real __cycleWidth: root.width / channelController.rangeConverter.displayingCycleCount
+    readonly property real __rangeStartOffset: __cycleWidth * channelController.rangeConverter.rangeStartOffset
 
     property SingleChannelController channelController: undefined
     property var barColor: "red"
+    property bool arrowChannel: false
 
     clip: true
 
@@ -69,7 +72,7 @@ Item{
             top: parent.top
             bottom: parent.bottom
             left: parent.left
-            leftMargin: __barWidth * (channelController.barSetModel.rectBaseOffset - channelController.rangeStartPos)
+            leftMargin: __barWidth * (channelController.barSetModel.rectBaseOffset - channelController.rangeConverter.rangeStartPos) - __rangeStartOffset
         }
 
         active: visible
@@ -123,6 +126,7 @@ Item{
             top: parent.top
             bottom: parent.bottom
             left: parent.left
+            leftMargin: -__rangeStartOffset
         }
 
         visible: channelController.loaderType === SingleChannelController.PointSet
@@ -135,8 +139,9 @@ Item{
                 stride: __barWidth
                 pointSetModel: channelController.bundle
                 lineColor: barColor
-                startPos: channelController.rangeStartPos
-                numPoints: Math.min(channelController.displayingDataCount, pointSetModel.length - startPos)
+                startPos: channelController.rangeConverter.rangeStartPos
+                numPoints: Math.min(channelController.rangeConverter.displayingDataCount, pointSetModel.length - startPos)
+                drawArrow: root.arrowChannel
             }
         }
 
@@ -151,7 +156,7 @@ Item{
         active: channelController.loading && __barSetWidth < root.width
 
         x: __barSetWidth
-        width: root.width - __barSetWidth
+        width: root.width + __rangeStartOffset - __barSetWidth
 
         anchors.top: parent.top
         anchors.bottom: parent.bottom

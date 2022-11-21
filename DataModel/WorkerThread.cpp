@@ -14,16 +14,16 @@ WorkerThread::~WorkerThread()
 {
 }
 
-QVariant WorkerThread::generate(const QString& columnName, size_t from, size_t number)
+QVariant WorkerThread::generate(const QString& key, const QString& columnName, size_t from, size_t number)
 {
     if(!isRunning())
     {
-        mGenReq.push_back({columnName, from, number});
+        mGenReq.push_back({key, columnName, from, number});
         start(LowPriority);
     }
     else {
         QMutexLocker locker(&mMutex);
-        mGenReq.push_back({columnName, from, number});
+        mGenReq.push_back({key, columnName, from, number});
         mCondition.wakeOne();
     }
 
@@ -36,6 +36,7 @@ void WorkerThread::run()
     size_t currentBatchNum = 0;
     size_t currentBatchFrom = 0;
     QString columnName;
+    QString key;
 
     bool taskAbort = false;
 
@@ -53,6 +54,7 @@ void WorkerThread::run()
             currentBatchFrom = this->mGenReq.front().from;
             currentBatchNum = this->mGenReq.front().count;
             columnName = this->mGenReq.front().columnName;
+            key = this->mGenReq.front().key;
             this->mGenReq.pop_front();
         }
         mMutex.unlock();
@@ -64,8 +66,7 @@ void WorkerThread::run()
         else
         {
             QVariant res = kernelFunc(columnName, currentBatchFrom, currentBatchNum);
-            //sleep(2);
-            emit dataLoadFinished(columnName, res);
+            emit dataLoadFinished(key, res);
         }
     }
     onThreadFinished();

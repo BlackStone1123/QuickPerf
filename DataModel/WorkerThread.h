@@ -7,6 +7,7 @@
 
 struct GenParam
 {
+    QString key;
     QString columnName;
     size_t from {0};
     size_t count {0};
@@ -20,11 +21,11 @@ public:
     WorkerThread(QObject* parent = nullptr);
     virtual ~WorkerThread();
 
-    virtual QVariant generate(const QString& column, size_t from, size_t number);
+    virtual QVariant generate(const QString& key, const QString& column, size_t from, size_t number);
     virtual size_t getBackEndDataSize() const {return 0;}
 
 signals:
-    void dataLoadFinished(const QString& columnName, const QVariant&);
+    void dataLoadFinished(const QString& key, const QVariant&);
 
 protected:
     virtual QVariant kernelFunc(const QString& column, size_t from, size_t number) = 0;

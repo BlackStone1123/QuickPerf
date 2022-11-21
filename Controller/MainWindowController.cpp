@@ -54,4 +54,5 @@ void MainWindowController::registerMetaTypes()
     qmlRegisterUncreatableType<TreeModel>("com.biren.dataModel", 1, 0, "TreeModel", "Should not be created from qml file");
     qmlRegisterUncreatableType<ChannelDataModel>("com.biren.dataModel", 1, 0, "ChannelDataModel", "Should not be created from qml file");
     qmlRegisterUncreatableType<DataGenerator>("com.biren.dataModel", 1, 0, "DataGenerator", "Should not be created from qml file");
+    qmlRegisterUncreatableType<CycleRangeConverter>("com.biren.dataModel", 1, 0, "CycleRangeConverter", "Should not be created from qml file");
 }

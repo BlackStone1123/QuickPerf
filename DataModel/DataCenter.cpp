@@ -23,9 +23,10 @@ static QString indexToColumnLabel(int index)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-DataGenerator::DataGenerator(const QString& valueColumn, QObject* parent)
+DataGenerator::DataGenerator(const QString& key, const QString& valueColumn, QObject* parent)
     : QObject(parent)
     , mValue(valueColumn)
+    , mKey(key)
 {
 }
 
@@ -34,14 +35,14 @@ void DataGenerator::generate(size_t number)
     if(mWorker && !mValue.isEmpty())
     {
         qWarning() << "request data from column: " << mValue << " from: " << mFrom << "number: " << number;
-        mWorker->generate(mValue, mFrom, number);
+        mWorker->generate(mKey, mValue, mFrom, number);
         mFrom += number;
     }
 }
 
-void DataGenerator::onDataLoadFinished(const QString& columnName, const QVariant& value)
+void DataGenerator::onDataLoadFinished(const QString& key, const QVariant& value)
 {
-    if(columnName == mValue)
+    if(key == mKey)
     {
         emit dataLoaded(value);
     }
@@ -143,13 +144,13 @@ void ExcelDataCenter::addWorker(DataType type, WorkerThread* worker)
     }
 }
 
-DataGenerator* ExcelDataCenter::creatDataGenerator(DataType type, const QString& valueColumn)
+DataGenerator* ExcelDataCenter::creatDataGenerator(DataType type, const QString& key, const QString& valueColumn)
 {
     QPointer<WorkerThread> worker = s_global_data_center->mWorkers[type];
     if(worker == nullptr)
         return nullptr;
 
-    DataGenerator* pGen = new DataGenerator(valueColumn);
+    DataGenerator* pGen = new DataGenerator(key, valueColumn);
     pGen->mWorker = worker;
     pGen->mType = type;
     connect(worker, &WorkerThread::dataLoadFinished, pGen, &DataGenerator::onDataLoadFinished);

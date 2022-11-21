@@ -8,6 +8,7 @@ Item {
     property var lineColor: "red"
     property int startPos: 0
     property int numPoints: 0
+    property bool drawArrow: false
 
     function repaint()
     {
@@ -61,6 +62,25 @@ Item {
             ctx.restore();
         }
 
+        function drawArrows(ctx, color, points)
+        {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            var end = points.length;
+            ctx.beginPath();
+            for (var i = 0; i < end; i++) {
+                var x = points[i].x;
+                ctx.moveTo(x, 5);
+                ctx.lineTo(x-4, 25);
+                ctx.lineTo(x+4, 25);
+                ctx.lineTo(x, 5);
+                ctx.fill();
+            }
+            ctx.closePath();
+            ctx.restore();
+        }
+
         onPaint: {
             var ctx = canvas.getContext("2d");
             ctx.globalCompositeOperation = "source-over";
@@ -72,12 +92,22 @@ Item {
                 return;
             }
 
-            for (var i = startPos, j = 0; i< startPos + numPoints ; i++, j++) {
+            if(drawArrow)
+            {
+                for (var i = startPos, j = 0; i< startPos + numPoints ; i++, j++) {
+                    if(pointSetModel[i] === 1)
+                    {
+                        points.push({x: j * stride});
+                    }
+                }
+                drawArrows(ctx, lineColor, points);
+            }else{
+                for (var i = startPos, j = 0; i< startPos + numPoints ; i++, j++) {
 
-                points.push({x: j * stride, y: root.height - pointSetModel[i] * root.height / 100 });
+                    points.push({x: j * stride, y: root.height - pointSetModel[i] * root.height / 100 });
+                }
+                drawLines(ctx, lineColor, points);
             }
-
-            drawLines(ctx, lineColor, points);
         }
     }
 }

@@ -96,14 +96,14 @@ FocusScope{
 
                 key: model.Label
                 value: model.ColumnName
-                type: "Counter"
+                type: model.DataType
 
                 x: padding
                 width: parent.width - padding
                 height: channelHeight
 
                 onPinButtonToggled: {
-                    graphController.onPinButtonToggled(listChannel.key, listChannel.value, checked, false)
+                    graphController.onPinButtonToggled(listChannel.key, listChannel.value, listChannel.type, checked, false)
                 }
             }
         }
@@ -175,7 +175,7 @@ FocusScope{
 
                         anchors.fill: parent
                         onPinButtonToggled: {
-                            graphController.onPinButtonToggled(channel.key, channel.value, checked, true)
+                            graphController.onPinButtonToggled(channel.key, channel.value, channel.type, checked, true)
                         }
                     }
 
@@ -228,11 +228,9 @@ FocusScope{
         AxisItem{
             id: rightArea
 
-            property SingleChannelController firstChannelController: graphController.topController
-
-            totalCount: firstChannelController.getTotalDataCount()
-            displayingCount: firstChannelController.displayingDataCount
-            beginIndex: firstChannelController.rangeStartPos
+            totalCount: graphController.totalCycleRange
+            displayingCount: graphController.rangeConverter.displayingDataCount
+            beginIndex: graphController.rangeConverter.rangeStartPos
 
             Layout.fillHeight: true
             Layout.fillWidth: true

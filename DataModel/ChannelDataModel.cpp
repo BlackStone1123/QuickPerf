@@ -19,6 +19,7 @@ QHash<int,QByteArray> ChannelDataModel::roleNames() const
     QHash<int, QByteArray> roles;
     roles[(int) ChannelDataRoles::label] = "Label";
     roles[(int) ChannelDataRoles::columnName] = "ColumnName";
+    roles[(int) ChannelDataRoles::dataType] = "DataType";
 
     return roles;
 }
@@ -35,6 +36,9 @@ QVariant ChannelDataModel::data(const QModelIndex &index, int role) const
     else if (role == (int) ChannelDataRoles::columnName ){
         return channelRow.value;
     }
+    else if (role == (int) ChannelDataRoles::dataType){
+        return channelRow.type;
+    }
     
     return QVariant();
 }
@@ -44,10 +48,10 @@ int ChannelDataModel::rowCount(const QModelIndex & parent) const
     return mRows.count();
 }
 
-void ChannelDataModel::addChannelDataBefore(size_t index, const QString& key, const QString& value)
+void ChannelDataModel::addChannelDataBefore(size_t index, const QString& key, const QString& value, const QString& type)
 {
     qDebug()<< "begin insert row at position:" << index;
-    ChannelDataRow newRow = generateChannelDataRow(key, value);
+    ChannelDataRow newRow = generateChannelDataRow(key, value, type);
 
     // update the model with new row
     beginInsertRows(QModelIndex(), index, index);
@@ -55,9 +59,9 @@ void ChannelDataModel::addChannelDataBefore(size_t index, const QString& key, co
     endInsertRows();
 }
 
-void ChannelDataModel::appendChannelData(const QString& key, const QString& value)
+void ChannelDataModel::appendChannelData(const QString& key, const QString& value, const QString& type)
 {
-    addChannelDataBefore(mRows.count(), key, value);
+    addChannelDataBefore(mRows.count(), key, value, type);
 }
 
 void ChannelDataModel::removeChannelData(const QString& key)
@@ -75,11 +79,12 @@ void ChannelDataModel::removeChannelData(const QString& key)
     }
 }
 
-ChannelDataRow ChannelDataModel::generateChannelDataRow(const QString& key, const QString& value)
+ChannelDataRow ChannelDataModel::generateChannelDataRow(const QString& key, const QString& value, const QString& type)
 {
     ChannelDataRow newRow;
     newRow.key = key;
     newRow.value = value;
+    newRow.type = type;
 
     return newRow;
 }

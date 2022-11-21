@@ -81,7 +81,9 @@ Item {
 
         SingleChannelController{
             id: singleChannelController
-            dataGenerator: graphController.getDataGenerator(type, value)
+
+            dataGenerator: graphController.getDataGenerator(key, type, value)
+            rangeConverter: graphController.getRangeConverter(type)
 
             onPindingUpdated:{
                 pinButton.checked = singleChannelController.pinding
@@ -96,6 +98,8 @@ Item {
 
             anchors.top: parent.top
             anchors.bottom: parent.bottom
+
+            arrowChannel: type === "Event"
 
             Component.onCompleted: {
                 graphController.registerSingleChannelController(key, channelController, listChannel);

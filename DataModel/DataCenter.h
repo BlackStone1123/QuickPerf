@@ -8,7 +8,7 @@
 class QAxObject;
 class ExcelWorker;
 
-enum class DataType
+enum DataType
 {
     Count = 0,
     Event,
@@ -21,19 +21,20 @@ class DataGenerator: public QObject
 public:
     friend class ExcelDataCenter;
 
-    DataGenerator(const QString& valueColumn, QObject* parent = nullptr);
+    DataGenerator(const QString& key, const QString& valueColumn, QObject* parent = nullptr);
     void generate(size_t number);
     size_t getBackEndDataSize() const;
-    DataType getDataType() const { return mType; }
 
 signals:
     void dataLoaded(const QVariant&);
 
 private slots:
-    void onDataLoadFinished(const QString& columnName, const QVariant&);
+    void onDataLoadFinished(const QString& key, const QVariant&);
 
 private:
     QString mValue;
+    QString mKey;
+
     size_t mFrom {0};
     DataType mType{DataType::Count};
     WorkerThread* mWorker{nullptr};
@@ -69,7 +70,7 @@ public:
     virtual ~ExcelDataCenter();
 
     void addWorker(DataType type, WorkerThread* pWorker);
-    static DataGenerator* creatDataGenerator(DataType type, const QString& valueColumn);
+    static DataGenerator* creatDataGenerator(DataType type, const QString& key, const QString& valueColumn);
 
 private:
     QMap<DataType, QPointer<WorkerThread>> mWorkers;

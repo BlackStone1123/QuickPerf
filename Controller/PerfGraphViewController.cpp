@@ -57,7 +57,7 @@ namespace  {
     void populateTree(TreeItem* rootItem)
     {
         QFile jsonFile;
-        jsonFile.setFileName("pfa_test_config_2.json");
+        jsonFile.setFileName("pfa_test_config_3.json");
 
         if(!jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)){
             qCritical() << "error: json file cannot be open";
@@ -84,6 +84,7 @@ PerfGraphViewController::PerfGraphViewController(QObject* parent)
     populateTree(root);
     mTreeModel = new TreeModel(root, this);
     mListModel = new ChannelDataModel(this);
+    mRangeConverter = new CycleRangeConverter(1,0, INITIAL_DISPLAYING_DATA_RANGE * 100, this);
 }
 
 PerfGraphViewController::~PerfGraphViewController()
@@ -101,7 +102,7 @@ void PerfGraphViewController::unRegisterSingleChannelController(const QString& c
     __unRegisterSingleChannelController(up ? mUpControllerList : mControllerList, columnName);
 }
 
-DataGenerator* PerfGraphViewController::getDataGenerator(const QString& type, const QString& value)
+DataGenerator* PerfGraphViewController::getDataGenerator(const QString& key, const QString& type, const QString& value)
 {
     if(value.isEmpty() || type.isEmpty())
         return nullptr;
@@ -109,7 +110,7 @@ DataGenerator* PerfGraphViewController::getDataGenerator(const QString& type, co
     DataGenerator* pGenerator = ExcelDataCenter::creatDataGenerator(
                 type == "Counter" ? DataType::Count :
                 type == "Event" ? DataType::Event:
-                DataType::Slice, value);
+                DataType::Slice, key, value);
 
     if(pGenerator)
     {
@@ -119,27 +120,34 @@ DataGenerator* PerfGraphViewController::getDataGenerator(const QString& type, co
     return  nullptr;
 }
 
+CycleRangeConverter* PerfGraphViewController::getRangeConverter(const QString& type)
+{
+    return new CycleRangeConverter(type == "Counter" ? 100 : 1);
+}
+
 void PerfGraphViewController::onWheelScaled(const qreal& ratio, const QPointF& point)
 {
     if(mCtl.isEmpty())
         return;
 
-    auto singleController = getTopController();
-    int currentDisplayingCount = singleController->getDisplayingDataCount();
+    int currentDisplayingCount = mRangeConverter->getConvertedDisplayingRange();
     bool zoomIn = point.y() > 0;
 
     int scaledNumber =  currentDisplayingCount * (zoomIn ? 0.8 : 1.2);
     scaledNumber = std::max(scaledNumber, MINIMUM_DISPLAYING_DATA_COUNT);
-    scaledNumber = singleController->requestForZoomStride(scaledNumber);
+    scaledNumber = requestForZoomStride(scaledNumber);
 
     int leftSliderMoveStride = qCeil(qFabs(currentDisplayingCount - scaledNumber) * ratio);
     int rightSliderMoveStride = qFabs(currentDisplayingCount - scaledNumber) - leftSliderMoveStride;
 
     if(!zoomIn)
     {
-        leftSliderMoveStride = singleController->requestForMoveStride(leftSliderMoveStride, false);
-        rightSliderMoveStride = singleController->requestForMoveStride(rightSliderMoveStride, true);
+        leftSliderMoveStride = requestForMoveStride(leftSliderMoveStride, false);
+        rightSliderMoveStride = requestForMoveStride(rightSliderMoveStride, true);
     }
+
+    mRangeConverter->boundaryMove(leftSliderMoveStride, true, zoomIn);
+    mRangeConverter->boundaryMove(rightSliderMoveStride, false, !zoomIn);
 
     if(currentDisplayingCount != scaledNumber){
         for(auto controller: mCtl){
@@ -157,16 +165,16 @@ void PerfGraphViewController::onLeftKeyPressed()
     if(mCtl.isEmpty())
         return;
 
-    auto singleController = getTopController();
-    int currentDisplayingCount = singleController->getDisplayingDataCount();
-
-    size_t dataStride = singleController->requestForMoveStride(currentDisplayingCount / 5, false);
+    int currentDisplayingCount = mRangeConverter->getConvertedDisplayingRange();
+    size_t dataStride = requestForMoveStride(currentDisplayingCount / 5, false);
 
     if(dataStride == 0)
     {
         qDebug() << "reach to the left end, can not scroll any more!";
         return;
     }
+
+    mRangeConverter->integralMove(dataStride, false);
 
     for (auto controller: mCtl)
     {
@@ -179,16 +187,16 @@ void PerfGraphViewController::onRightKeyPressed()
     if(mCtl.isEmpty())
         return;
 
-    auto singleController = getTopController();
-    int currentDisplayingCount = singleController->getDisplayingDataCount();
-
-    size_t dataStride = singleController->requestForMoveStride(currentDisplayingCount / 5, true);
+    int currentDisplayingCount = mRangeConverter->getConvertedDisplayingRange();
+    size_t dataStride = requestForMoveStride(currentDisplayingCount / 5, true);
 
     if(dataStride == 0)
     {
         qDebug()<< "reach to the right end, can not scroll any more!";
         return;
     }
+
+    mRangeConverter->integralMove(dataStride, true);
 
     for (auto& controller: mCtl)
     {
@@ -198,6 +206,8 @@ void PerfGraphViewController::onRightKeyPressed()
 
 void PerfGraphViewController::onSliderPositionChanged(int position)
 {
+    mRangeConverter->integralMoveTo(position);
+
     for (auto& controller: mCtl)
     {
         controller->integralMoveTo(position);
@@ -210,13 +220,13 @@ void PerfGraphViewController::onSplitterDragging(int stride, bool left, bool for
     }
 }
 
-void PerfGraphViewController::onPinButtonToggled(const QString& key, const QString& value, bool checked, bool down)
+void PerfGraphViewController::onPinButtonToggled(const QString& key, const QString& value, const QString& type, bool checked, bool down)
 {
     if(down)
     {
         if(checked)
         {
-            mListModel->appendChannelData(key, value);
+            mListModel->appendChannelData(key, value, type);
         }
         else {
             mListModel->removeChannelData(key);
@@ -241,23 +251,6 @@ void PerfGraphViewController::onPinButtonToggled(const QString& key, const QStri
     }
 }
 
-SingleChannelController* PerfGraphViewController::getTopController()
-{
-    if(mTopController)
-        return mTopController;
-
-    for(auto& controller: mControllerList)
-    {
-        if(controller->getDataGenerator() != nullptr)
-        {
-            mTopController = controller;
-            emit topControllerChanged();
-            break;
-        }
-    }
-    return mTopController;
-}
-
 void PerfGraphViewController::__registerSingleChannelController(ControllerList& dst, const QString& key, SingleChannelController* controller)
 {
     if(!key.isEmpty() && controller->getDataGenerator() != nullptr)
@@ -267,16 +260,20 @@ void PerfGraphViewController::__registerSingleChannelController(ControllerList& 
             dst[key] = controller;
             controller->setKey(key);
 
+            int rangeStart = mRangeConverter->getConvertedRangeStart();
+            int displayingCount = mRangeConverter->getConvertedDisplayingRange();
+
             InitialStatus status;
-            status.dataCount = getTopController()->getTotalRange();
+            status.totalCycleRange = rangeStart + displayingCount;
+            status.displayingCycleRange = displayingCount;
             status.pinding = mChannelStatus.find(key) == mChannelStatus.end() ? false : mChannelStatus[key];
 
             controller->loadInitialDatas(status);
 
             if(!dst.isEmpty())
             {
-                controller->integralMoveTo(getTopController()->getRangeStartPosition());
-                controller->zoomTo(getTopController()->getDisplayingDataCount());
+                controller->integralMoveTo(rangeStart);
+                controller->zoomTo(displayingCount);
             }
             mCtl.append(controller);
         }
@@ -291,12 +288,23 @@ void PerfGraphViewController::__unRegisterSingleChannelController(ControllerList
     auto itr = dst.find(key);
     if(itr != dst.end())
     {
-        if(itr.value() == mTopController)
-        {
-            mTopController = nullptr;
-            emit topControllerChanged();
-        }
         mCtl.removeAll(itr.value());
         dst.erase(itr);
     }
+}
+
+int PerfGraphViewController::requestForMoveStride(size_t preferSize, bool forward)
+{
+    int rangeStart = mRangeConverter->getConvertedRangeStart();
+    int displayingCount = mRangeConverter->getConvertedDisplayingRange();
+
+    size_t backendSize = mTotalCycleRange;
+    size_t residual = forward ? (backendSize - rangeStart - displayingCount) : rangeStart;
+
+    return std::min(residual, preferSize);
+}
+
+int PerfGraphViewController::requestForZoomStride(size_t count)
+{
+    return std::min(count, mTotalCycleRange);
 }
