@@ -78,7 +78,6 @@ void CycleRangeConverter::zoomTo(int count)
 ////////////////////////////////////////////////////////////////////////
 SingleChannelController::SingleChannelController(QObject* parent)
     : QObject(parent)
-    , mBarSetModel(new RectangleViewModel(mAmplitudes, this))
 {
 }
 
@@ -95,11 +94,6 @@ void SingleChannelController::appendDatas(const QList<qreal>& datasToAppend)
 
     mAmplitudes.append(datasToAppend);
     emit bundleUpdated();
-
-//    if(mLoaderType == Rectangle)
-//    {
-//        mBarSetModel->setBaseOffset(mRangeStartPos);
-//    }
 }
 
 void SingleChannelController::updatePinStatus(bool pined, bool fromUI)
@@ -126,11 +120,7 @@ void SingleChannelController::loadInitialDatas(const InitialStatus& status)
     QObject::connect(mCycleRangeConverter, &CycleRangeConverter::displayingDataCountChanged, this, &SingleChannelController::onDisplayingDataCountChanged);
 
     int scale = mCycleRangeConverter->getScale();
-    int scaledDisplayingCount = qCeil((double)status.displayingCycleRange / scale);
     int scaledTotalRange = qCeil((double)status.totalCycleRange / scale);
-
-    mLoaderType = scaledDisplayingCount > MAXIMUM_RECTANGLE_DISPLAYING_DATA_COUNT ? PointSet : Rectangle;
-    emit loaderTypeChanged();
 
     mPinding = status.pinding;
     emit pindingUpdated();
@@ -233,25 +223,6 @@ void SingleChannelController::updateModel()
     }
 }
 
-void SingleChannelController::rebase()
-{
-    if(mLoaderType == Rectangle)
-    {
-        int rangeStart = mCycleRangeConverter->getConvertedRangeStart();
-        int displayingCount = mCycleRangeConverter->getConvertedDisplayingRange();
-
-        int baseOffset = mBarSetModel->getBaseOffset();
-        bool rebase = (MAXIMUM_RECTANGLE_DATA_COUNT < (rangeStart - baseOffset)) ||
-                (displayingCount > MAXIMUM_RECTANGLE_DATA_COUNT - (rangeStart - baseOffset))||
-                rangeStart < baseOffset;
-
-        if(rebase)
-        {
-            mBarSetModel->setBaseOffset(rangeStart);
-        }
-    }
-}
-
 void SingleChannelController::onDataLoadedArrived(const QVariant& data)
 {
     if(mPendingLoading == 0)
@@ -273,13 +244,11 @@ void SingleChannelController::onDataLoadedArrived(const QVariant& data)
 void SingleChannelController::onRangeStartPosChanged()
 {
     updateModel();
-    rebase();
 }
 
 void SingleChannelController::onDisplayingDataCountChanged()
 {
     updateModel();
-    rebase();
 }
 
 int SingleChannelController::getTotalDataCount() const

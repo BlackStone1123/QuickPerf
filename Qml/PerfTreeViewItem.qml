@@ -129,10 +129,11 @@ Item {
                }
             }
 
-            Item {
+            MouseArea {
                id: column
 
                Layout.fillWidth: true
+               hoverEnabled: true
 
                width: row.implicitWidth
                height: Math.max(row.implicitHeight, root.rowHeight)
@@ -205,19 +206,17 @@ Item {
                   clip: false
 
                   property QtObject currentRow: _prop
-
-                  HoverHandler {
-                     onHoveredChanged: {
-                        if(root.hoverEnabled){
-                           if(hovered && root.hoveredIndex !== _prop.currentIndex)
-                              root.hoveredIndex = _prop.currentIndex
-                           if(!hovered && root.hoveredIndex === _prop.currentIndex)
-                              root.hoveredIndex = null
-                        }
-                     }
-                  }
                }
 
+               onEntered: {
+                   if(root.hoveredIndex !== _prop.currentIndex)
+                       root.hoveredIndex = _prop.currentIndex
+               }
+
+               onExited: {
+                   if(root.hoveredIndex === _prop.currentIndex)
+                       root.hoveredIndex = null
+               }
             }
 
             // loader to populate the children row for each node

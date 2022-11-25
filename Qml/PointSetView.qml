@@ -8,6 +8,7 @@ Item {
     property var lineColor: "red"
     property int startPos: 0
     property int numPoints: 0
+    property int hoveredIndex: -1
     property bool drawArrow: false
 
     function repaint()
@@ -28,6 +29,10 @@ Item {
         repaint();
     }
 
+    onHoveredIndexChanged: {
+        repaint();
+    }
+
     Canvas {
         id: canvas
 
@@ -43,9 +48,6 @@ Item {
         {
             ctx.save();
             ctx.strokeStyle = color;
-            ctx.fillStyle = color;
-            ctx.lineWidth = numPoints > 500 ? 1 : 2
-
             ctx.beginPath();
 
             var end = points.length;
@@ -53,6 +55,7 @@ Item {
             for (var i = 0; i < end; i++) {
                 var x = points[i].x;
                 var y = points[i].y;
+                ctx.fillStyle = points[i].highlight ? Qt.darker(color, 2.0) : color;
 
                 if(root.height - y > 1)
                 {
@@ -99,7 +102,7 @@ Item {
             }else{
                 for (var i = startPos, j = 0; i< startPos + numPoints ; i++, j++) {
 
-                    points.push({x: j * stride, y: root.height - pointSetModel[i] * root.height / 100 });
+                    points.push({x: j * stride, y: root.height - pointSetModel[i] * root.height / 100, highlight: j === hoveredIndex });
                 }
                 drawLines(ctx, lineColor, points);
             }

@@ -25,24 +25,20 @@ Item{
 
         Item{
             id: root
-            readonly property int indicatorHeight: 30
 
-            implicitHeight: indicatorHeight
+            property string indicatorText: "text"
+
+            implicitHeight: textComp.contentHeight
+            implicitWidth: textComp.contentWidth
 
             Text{
                 id: textComp
                 text: indicatorText
+
+                font.pixelSize: 20
+                font.family: "Times"
+
                 anchors.centerIn: parent
-            }
-
-            Rectangle{
-                id: underlineComp
-
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: root.bottom
-                height: 3
-                color: "black"
             }
         }
 
@@ -65,60 +61,6 @@ Item{
     }
 
     Loader{
-        id: rectangleViewLoader
-
-        width: __barSetWidth
-        anchors{
-            top: parent.top
-            bottom: parent.bottom
-            left: parent.left
-            leftMargin: __barWidth * (channelController.barSetModel.rectBaseOffset - channelController.rangeConverter.rangeStartPos) - __rangeStartOffset
-        }
-
-        active: visible
-        visible: channelController.loaderType === SingleChannelController.Rectangle
-
-        sourceComponent: Component{
-            id: recViewComp
-
-            Row{
-                id: repeaterRow
-
-                Repeater{
-                    id: innerRepeater
-                    model: channelController.barSetModel
-
-                    anchors.fill: parent
-                    delegate: Rectangle{
-                        id: bar
-
-                        anchors.bottom: parent.bottom
-                        implicitWidth: __barWidth
-                        implicitHeight: Math.max(1, model.Amplitude * root.height / 100)
-                        color: hoverHandler.hovered ? Qt.darker(barColor, 2.0) : barColor
-
-                        HoverHandler{
-                            id: hoverHandler
-                        }
-
-                        Loader{
-                            id: indicatorLoader
-
-                            property string indicatorText: bar.height
-
-                            anchors.bottom: bar.top
-                            width: bar.width
-                            active: hoverHandler.hovered
-                            sourceComponent: indicator
-
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    Loader{
         id: pointSetViewLoader
 
         width: __barSetWidth
@@ -129,7 +71,12 @@ Item{
             leftMargin: -__rangeStartOffset
         }
 
-        visible: channelController.loaderType === SingleChannelController.PointSet
+        property var hoveredIndex: barsetHover.hovered ? Math.floor((barsetHover.point.position.x + __rangeStartOffset) / __barWidth) : -1
+
+        HoverHandler{
+            id: barsetHover
+        }
+
         sourceComponent: Component{
             id: ptComp
 
@@ -142,6 +89,7 @@ Item{
                 startPos: channelController.rangeConverter.rangeStartPos
                 numPoints: Math.min(channelController.rangeConverter.displayingDataCount, pointSetModel.length - startPos)
                 drawArrow: root.arrowChannel
+                hoveredIndex: pointSetViewLoader.hoveredIndex
             }
         }
 
@@ -173,5 +121,23 @@ Item{
 
         height: 1
         color: "#d7d7d7"
+    }
+
+    Loader{
+        id: indicatorLoader
+
+        x: barsetHover.point.position.x + 10
+        anchors.verticalCenter: parent.verticalCenter
+
+        active: barsetHover.hovered
+        sourceComponent: indicator
+
+        Binding{
+            target: indicatorLoader.item
+            property: "indicatorText"
+            value: channelController.bundle[pointSetViewLoader.hoveredIndex + channelController.rangeConverter.rangeStartPos]
+            when: indicatorLoader.active
+        }
+
     }
 }

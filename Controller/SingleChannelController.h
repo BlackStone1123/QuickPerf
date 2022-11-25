@@ -60,19 +60,10 @@ class SingleChannelController: public QObject
     Q_PROPERTY(QList<qreal> bundle MEMBER mAmplitudes NOTIFY bundleUpdated)
     Q_PROPERTY(bool loading MEMBER mLoading NOTIFY loadingUpdated)
     Q_PROPERTY(bool pinding MEMBER mPinding NOTIFY pindingUpdated)
-    Q_PROPERTY(LoaderType loaderType MEMBER mLoaderType NOTIFY loaderTypeChanged)
-    Q_PROPERTY(RectangleViewModel* barSetModel MEMBER mBarSetModel NOTIFY barSetModelChanged)
     Q_PROPERTY(DataGenerator* dataGenerator READ getDataGenerator WRITE setDataGenerator NOTIFY dataGeneratorChanged)
     Q_PROPERTY(CycleRangeConverter* rangeConverter READ getRangeConverter WRITE setRangeConverter NOTIFY cycleRangeConverterChanged)
 
 public:
-    enum LoaderType
-    {
-        Rectangle,
-        PointSet
-    };
-    Q_ENUM(LoaderType)
-
     explicit SingleChannelController(QObject* parent = nullptr);
     virtual ~SingleChannelController();
 
@@ -111,20 +102,17 @@ private:
     void appendDatas(const QList<qreal>&);
     void fetchMoreData(size_t count);
     void updateModel();
-    void rebase();
 
 private:
     QList<qreal> mAmplitudes;
     QString mKey;
 
     DataGenerator* mGenerator {nullptr};
-    RectangleViewModel* mBarSetModel {nullptr};
     CycleRangeConverter* mCycleRangeConverter {nullptr};
 
     bool mLoading {false};
     bool mPinding {false};
     int mPendingLoading{0};
-    LoaderType mLoaderType {PointSet};
 
     size_t mTotalRange{ INITIAL_TOTAL_DATA_RANGE };
     size_t mBatchSize{ LOADING_BATCH_SIZE };
