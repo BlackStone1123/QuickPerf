@@ -18,13 +18,10 @@ int main(int argc, char *argv[])
     QDir dir("spc_0_0_by_cycle_range.xlsx");
     ExcelWorker counterWorker(2794,  dir.absolutePath(), &app);
 
-//    QDir dir1("u_spc_0_0_signals.csv");
-//    ExcelWorker eventWorker(279334,  dir1.absolutePath(), &app);
+    QDir dir1("u_spc_0_0_signals.csv");
+    ExcelWorker eventWorker(279334,  dir1.absolutePath(), &app);
 
-    QDir dir1("WTG.xlsx");
-    ExcelWorker eventWorker(81100,  dir1.absolutePath(), &app);
-
-    ExcelDataCenter dataCenter(&app);
+    ExcelDataCenter dataCenter("pfa_test_config_2.json", &app);
     dataCenter.addWorker(DataType::Count, &counterWorker);
     dataCenter.addWorker(DataType::Event, &eventWorker);
 

@@ -71,13 +71,8 @@ Item {
             ctx.beginPath();
             for (var i = 0; i < end; i++) {
                 var x = points[i].x;
-                ctx.moveTo(x, 5);
-                ctx.lineTo(x-4, 25);
-                ctx.lineTo(x+4, 25);
-                ctx.lineTo(x, 5);
-                ctx.fill();
+                ctx.fillRect(x-4, 5, 8, 25);
             }
-            ctx.closePath();
             ctx.restore();
         }
 

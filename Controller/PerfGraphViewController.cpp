@@ -57,7 +57,7 @@ namespace  {
     void populateTree(TreeItem* rootItem)
     {
         QFile jsonFile;
-        jsonFile.setFileName("pfa_test_config_3.json");
+        jsonFile.setFileName(ExcelDataCenter::getConfigFileName());
 
         if(!jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)){
             qCritical() << "error: json file cannot be open";
@@ -215,6 +215,8 @@ void PerfGraphViewController::onSliderPositionChanged(int position)
 }
 void PerfGraphViewController::onSplitterDragging(int stride, bool left, bool forward)
 {
+    mRangeConverter->boundaryMove(stride, left, forward);
+
     for(auto controller: mCtl){
         controller->sliderMove(stride, left, forward);
     }

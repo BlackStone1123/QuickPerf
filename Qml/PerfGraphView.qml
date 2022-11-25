@@ -12,10 +12,12 @@ FocusScope{
     property var handleWidth: 1
     readonly property int channelHeight: 30
 
+    // Controller of the whole tree view
     PerfGraphViewController{
         id: graphController
     }
 
+    // background layer merely show some split lines
     Row{
         id: backLayer
 
@@ -65,6 +67,16 @@ FocusScope{
         }
     }
 
+    // middle layer serves as the main layer that shows the data
+    // of corresponding data model. Which is composed of two component
+    // (1) The list view is the one served as showing pined channels which
+    //     are listed Sequentially.
+    // (2) The scrollView is a wrapper of the graphTreeView, and the tree view
+    //     is the real content item, the scrollView will provide a scrollbar if
+    //     the size of tree view out of view port range.
+    // (3) The graphTreeView is used to display the hierarchy data structure of its
+    //     underlying tree model. Which will provide indent as the depth of hierarchy goes
+    //     further and collapse all of the child items if a parent item is collapsed.
     ColumnLayout {
         id: middleLayer
 
@@ -136,15 +148,18 @@ FocusScope{
                 contentItem: Item {
                     id: content
 
+                    // leftPadding calculate the width of indent of current row and the width of collapse sign
                     property var leftPadding: graphTreeView.rowPadding * currentRow.depth + 15
                     property var pixelDepth: 0
                     property bool inPort: (pixelDepth + channelHeight > 0) && (pixelDepth < graphTreeView.height)
                     property bool showPlaceHolder: currentRow.depth === 0 && currentRow.expanded
 
+                    // change the color of the collapse sign of current row.
                     onShowPlaceHolderChanged: {
                         currentRow.handleColor = showPlaceHolder ? "white" : "black"
                     }
 
+                    // This place holder only visible when a top level item is expanded
                     Rectangle{
                         id: placeHolder
 
@@ -209,6 +224,15 @@ FocusScope{
         }
     }
 
+    // The top layer is a split view which lies atop middle layer and split the view into two
+    // parts, the width of left area binds to the left content of middle layer width, and the
+    // width of right area binds to the right content middle layer width. So that the content of
+    // middle layer can be adjusted when dragging the handle of the split view. So the top layer
+    // merely provide features as:
+    // (1) adjust the left and right content width of the middle layer with handle.
+    // (2) fill the right area of the split view with a axis item, which shows the displaying data
+    //     range, and provide a slider to control the displaying start index and displaying count of
+    //     underlying datas.
     SplitView{
         id: topLayer
 

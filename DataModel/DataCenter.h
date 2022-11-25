@@ -66,12 +66,14 @@ class ExcelDataCenter: public QObject
 {
     Q_OBJECT
 public:
-    ExcelDataCenter(QObject* parent = nullptr);
+    ExcelDataCenter(const QString& config, QObject* parent = nullptr);
     virtual ~ExcelDataCenter();
 
     void addWorker(DataType type, WorkerThread* pWorker);
     static DataGenerator* creatDataGenerator(DataType type, const QString& key, const QString& valueColumn);
+    static QString getConfigFileName();
 
 private:
     QMap<DataType, QPointer<WorkerThread>> mWorkers;
+    QString mConfig;
 };

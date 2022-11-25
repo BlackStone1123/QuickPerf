@@ -125,8 +125,9 @@ void ExcelWorker::onThreadFinished()
     delete mExcel;
 }
 /////////////////////////////////////////////////////////////////////////////////////
-ExcelDataCenter::ExcelDataCenter(QObject* parent)
+ExcelDataCenter::ExcelDataCenter(const QString& config, QObject* parent)
     : QObject(parent)
+    , mConfig(config)
 {
     s_global_data_center = this;
 }
@@ -156,4 +157,9 @@ DataGenerator* ExcelDataCenter::creatDataGenerator(DataType type, const QString&
     connect(worker, &WorkerThread::dataLoadFinished, pGen, &DataGenerator::onDataLoadFinished);
 
     return pGen;
+}
+
+QString ExcelDataCenter::getConfigFileName()
+{
+    return s_global_data_center->mConfig;
 }
