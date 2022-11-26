@@ -5,14 +5,12 @@ import com.biren.dataModel 1.0
 Item{
     id: root
 
-    function getBarSetWidth(){
-        return Math.max(0, Math.min(root.width, __barWidth * (channelController.bundle.length - channelController.rangeConverter.rangeStartPos)))
-    }
-
-    readonly property real __barSetWidth: getBarSetWidth()
     readonly property real __barWidth: __cycleWidth * channelController.rangeConverter.scale
     readonly property real __cycleWidth: root.width / channelController.rangeConverter.displayingCycleCount
     readonly property real __rangeStartOffset: __cycleWidth * channelController.rangeConverter.rangeStartOffset
+    readonly property real __rangeStartPos: channelController.rangeConverter.rangeStartPos
+    readonly property real __displayingDataCount: Math.max(0, Math.min(channelController.rangeConverter.displayingDataCount, channelController.bundle.length - __rangeStartPos))
+    readonly property real __barSetWidth: __barWidth * __displayingDataCount
 
     property SingleChannelController channelController: undefined
     property var barColor: "red"
@@ -86,8 +84,8 @@ Item{
                 stride: __barWidth
                 pointSetModel: channelController.bundle
                 lineColor: barColor
-                startPos: channelController.rangeConverter.rangeStartPos
-                numPoints: Math.min(channelController.rangeConverter.displayingDataCount, pointSetModel.length - startPos)
+                startPos: __rangeStartPos
+                numPoints: __displayingDataCount
                 drawArrow: root.arrowChannel
                 hoveredIndex: pointSetViewLoader.hoveredIndex
             }
@@ -101,13 +99,12 @@ Item{
     Loader{
         id: loadingHint
 
-        active: channelController.loading && __barSetWidth < root.width
-
-        x: __barSetWidth
-        width: root.width + __rangeStartOffset - __barSetWidth
+        active: channelController.loading
 
         anchors.top: parent.top
         anchors.bottom: parent.bottom
+        anchors.left: pointSetViewLoader.right
+        anchors.right: parent.right
 
         sourceComponent: loadingHintComp
     }

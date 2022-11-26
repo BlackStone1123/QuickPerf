@@ -66,7 +66,12 @@ void CycleRangeConverter::zoomTo(int count)
     mCycleDisplayingCount = count;
     emit displayingCycleCountChanged();
 
-    int displayingCount = qCeil((double) count / mScale);
+    int displayingCount = 1;
+    int cycleRangeAcc = mScale - mRangeStartOffset;
+    while (cycleRangeAcc < count) {
+        cycleRangeAcc += mScale;
+        displayingCount++;
+    }
 
     if(mDisplayingDataCount != displayingCount)
     {
